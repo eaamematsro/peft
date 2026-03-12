@@ -49,7 +49,6 @@ class NonlinearLoraModel(BaseTuner):
         scale_lambda_by_trace: bool | None = None,
         max_batches: int | None = 1,
         inplace_disable_adapter: bool = False,
-        consolidate_rls: bool | None = None,
         update_frequency: int | None = None,
         zeroshift: bool | None = None,
     ):
@@ -74,10 +73,7 @@ class NonlinearLoraModel(BaseTuner):
         if scale_lambda_by_trace is None:
             scale_lambda_by_trace = getattr(cfg, "consolidate_scale_lambda_by_trace", True)
         if max_batches is None:
-            max_batches = getattr(cfg, "consolidate_batches", None)  # allow None = all
-        
-        if consolidate_rls is None:
-            consolidate_rls = getattr(cfg, "consolidate_rls", False)
+            max_batches = getattr(cfg, "consolidate_batches", 1)  # allow None = all
 
         if accum_dtype is None:
             dtype_str = getattr(cfg, "consolidate_dtype", "float32")
@@ -142,7 +138,6 @@ class NonlinearLoraModel(BaseTuner):
                 scale_by_lambda_=scale_lambda_by_trace,
                 adapter_name=adapter_name,
                 inplace_disable_adapter=inplace_disable_adapter,
-                consolidate_rls=consolidate_rls,
                 zeroshift=zeroshift,
             )
 
