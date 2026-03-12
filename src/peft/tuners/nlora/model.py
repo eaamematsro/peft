@@ -99,7 +99,6 @@ class NonlinearLoraModel(BaseTuner):
                     accum_dtype=accum_dtype,
                     lambda_=lambda_,
                     scale_lambda_by_trace=scale_lambda_by_trace,
-                    consolidate_rls=consolidate_rls,
                 )
             return hook
 
