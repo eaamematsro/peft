@@ -120,7 +120,6 @@ class NonlinearLoraModel(BaseTuner):
         # accumulate stats
         self.model.eval()
         dev = next(self.model.parameters()).device
-
         for i, batch in enumerate(dataloader):
             if max_batches is not None and i >= max_batches:
                 break

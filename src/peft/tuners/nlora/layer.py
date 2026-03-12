@@ -1,5 +1,6 @@
 # layer.py
 import math
+import pdb
 import torch
 import torch.nn as nn
 from peft.tuners.tuners_utils import BaseTunerLayer
@@ -98,8 +99,7 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
 
     @torch.no_grad()
     def accumulate_consolidation_stats(self, x, adapter_name: str, state: dict, off_load_to_cpu: bool = False, accum_dtype=torch.float32,
-                                       lambda_: float = 1e-3, scale_lambda_by_trace: bool = True, consolidate_rls: bool = False,
-                                       zeroshift: bool = False):
+                                       **kwargs):
         """
         Docstring for accumulate_consolidation_stats
         x: [*, d_in]
@@ -137,33 +137,11 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
         d = xA.size(1)
         m = rA.size(1)
         if "xxt" not in state:
-            if not consolidate_rls:
-                state["xxt"] = torch.zeros((d, d), device=dev, dtype=accum_dtype)
-                state["xzt"] = torch.zeros((d, m), device=dev, dtype=accum_dtype)
-            else:
-                state["wn"] = torch.zeros((d, m), device=dev, dtype=accum_dtype)
-                lambda_scaled = lambda_
-
-                if scale_lambda_by_trace:
-                    lambda_scaled = lambda_ #* (torch.trace(xA.t() @ xA) / d).clamp_min(1e-6)
-                else:
-                    lambda_scaled = lambda_
-                
-                state["pn"] = (1 / lambda_scaled) * torch.eye(d, device=dev, dtype=accum_dtype)
-        
-        if consolidate_rls:
-            S = torch.eye(xA.size(0), device=dev, dtype=accum_dtype) + xA @ state["pn"] @ xA.t()
-            kn = state["pn"] @ xA.t() @ torch.linalg.solve(S, torch.eye(xA.size(0), device=dev, dtype=accum_dtype))
-
-            wn = state["wn"] + kn @ (rA - xA @ state["wn"])
-            pn = (state["pn"] - kn @ xA @ state["pn"])
-            pn = 0.5 * (pn + pn.t())  # ensure symmetry
-
-            state["wn"] = wn
-            state["pn"] = pn
-        else:
-            state["xxt"].add_(xA.t() @ xA)
-            state["xzt"].add_(xA.t() @ rA)
+            state["xxt"] = torch.zeros((d, d), device=dev, dtype=accum_dtype)
+            state["xzt"] = torch.zeros((d, m), device=dev, dtype=accum_dtype)
+            
+        state["xxt"].add_(xA.t() @ xA)
+        state["xzt"].add_(xA.t() @ rA)
 
         z = self.inner_adapter_forward(x, adapter_name)  # [*, r]
         if z.dim() == 3:
@@ -234,16 +212,12 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
 
     @torch.no_grad()
     def solve_and_merge(self, state: dict, lr_: float, lambda_w: float, scale_by_lambda_: bool,
-                        adapter_name:str, inplace_disable_adapter=False, consolidate_rls=False, 
-                        zeroshift=False):
+                        adapter_name:str, inplace_disable_adapter=False, zeroshift=False):
         """
         Solve for optimal U given V and the accumulated stats, then merge into base layer.
         This is equivalent to solving a ridge regression problem with Tikhonov regularization of strength lambda_.
         """
-        if consolidate_rls:
-            dW = state["wn"]  # [d, out]
-        else:
-            dW = self.solve_dW(state, lambda_=lambda_w, scale_lambda_by_trace=scale_by_lambda_)  # [d, out]
+        dW = self.solve_dW(state, lambda_=lambda_w, scale_lambda_by_trace=scale_by_lambda_)  # [d, out]
 
         base_w = self.base_layer.weight.data  # [out, in]
         dW = dW.to(base_w.device)
