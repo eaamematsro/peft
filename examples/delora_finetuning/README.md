@@ -11,7 +11,7 @@ With respect to your standard PEFT training procedure with LoRA, simply swap you
 
 ```python
 import torch
-from peft import DeloraConfig, get_peft_model
+from src.peft.src.peft import DeloraConfig, get_peft_model
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import SFTConfig, SFTTrainer
 from datasets import load_dataset
@@ -40,7 +40,7 @@ peft_model.save_pretrained("delora-llama-3-8b")
 To utilize the fine-tuned DeLoRA modules, simply run the following command:
 ```python
 import torch
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 from transformers import AutoModelForCausalLM
 
 model = AutoModelForCausalLM.from_pretrained(

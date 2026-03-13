@@ -19,10 +19,10 @@ from diffusers import StableDiffusionPipeline
 from torch import nn
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from peft import LoraConfig, get_peft_model
-from peft.helpers import DoraCaching, check_if_peft_model, disable_input_dtype_casting, rescale_adapter_scale
-from peft.tuners.lora.layer import LoraLayer
-from peft.utils import infer_device
+from src.peft.src.peft import LoraConfig, get_peft_model
+from src.peft.src.peft.helpers import DoraCaching, check_if_peft_model, disable_input_dtype_casting, rescale_adapter_scale
+from src.peft.src.peft.tuners.lora.layer import LoraLayer
+from src.peft.src.peft.utils import infer_device
 
 from .testing_utils import hub_online_once
 

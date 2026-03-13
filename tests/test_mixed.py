@@ -26,7 +26,7 @@ from parameterized import parameterized
 from torch import nn
 from transformers import AutoModelForCausalLM
 
-from peft import (
+from src.peft.src.peft import (
     AdaLoraConfig,
     LoHaConfig,
     LoKrConfig,
@@ -35,8 +35,8 @@ from peft import (
     PrefixTuningConfig,
     get_peft_model,
 )
-from peft.tuners.tuners_utils import BaseTunerLayer
-from peft.utils import infer_device
+from src.peft.src.peft.tuners.tuners_utils import BaseTunerLayer
+from src.peft.src.peft.utils import infer_device
 
 
 class SimpleNet(nn.Module):

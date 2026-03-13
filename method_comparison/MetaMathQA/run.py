@@ -54,8 +54,8 @@ from utils import (
 )
 
 from data import get_train_valid_test_datasets, get_wiki_small
-from peft import AdaLoraConfig, PeftConfig
-from peft.utils import CONFIG_NAME, infer_device
+from src.peft.src.peft import AdaLoraConfig, PeftConfig
+from src.peft.src.peft.utils import CONFIG_NAME, infer_device
 
 
 # number of batches per bucket, increasing this further has diminishing returns

@@ -19,7 +19,7 @@ import torch
 from datasets import load_dataset
 from torch.testing import assert_close
 
-from peft.utils.incremental_pca import IncrementalPCA
+from src.peft.src.peft.utils.incremental_pca import IncrementalPCA
 
 
 torch.manual_seed(1999)

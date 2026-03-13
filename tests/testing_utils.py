@@ -22,7 +22,7 @@ import torch
 from accelerate.test_utils.testing import get_backend
 from datasets import load_dataset
 
-from peft import (
+from src.peft.src.peft import (
     AdaLoraConfig,
     IA3Config,
     LNTuningConfig,
@@ -30,7 +30,7 @@ from peft import (
     PromptLearningConfig,
     VBLoRAConfig,
 )
-from peft.import_utils import (
+from src.peft.src.peft.import_utils import (
     is_aqlm_available,
     is_eetq_available,
     is_gptqmodel_available,
@@ -38,7 +38,7 @@ from peft.import_utils import (
     is_optimum_available,
     is_torchao_available,
 )
-from peft.utils import is_transformers_ge_v5
+from src.peft.src.peft.utils import is_transformers_ge_v5
 
 
 # Globally shared model cache used by `hub_online_once`.

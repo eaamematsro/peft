@@ -14,7 +14,7 @@
 import pytest
 import torch
 
-from peft import LoraConfig, get_peft_model
+from src.peft.src.peft import LoraConfig, get_peft_model
 
 
 class TestGetPeftModel:

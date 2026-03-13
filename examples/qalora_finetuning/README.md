@@ -8,7 +8,7 @@ QALoRA enables fine-tuning of models that would otherwise be too large for consu
 ## Quick start
 ```python
 import torch
-from peft import LoraConfig, get_peft_model
+from src.peft.src.peft import LoraConfig, get_peft_model
 from transformers import AutoTokenizer, AutoModelForCausalLM, Trainer
 from datasets import load_dataset
 
@@ -89,7 +89,7 @@ python qalora_gptq_finetuning.py \
 ## Use the model on 🤗
 You can load and use the finetuned model like any other PEFT model:
 ```python
-from peft import PeftModel, PeftConfig
+from src.peft.src.peft import PeftModel, PeftConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # Load the base quantized model

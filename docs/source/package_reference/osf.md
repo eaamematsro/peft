@@ -41,7 +41,7 @@ During training, gradients are projected to be orthogonal to the high-rank subsp
 ```python
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from peft import OSFConfig, get_peft_model
+from src.peft.src.peft import OSFConfig, get_peft_model
 
 # Load base model
 model = AutoModelForCausalLM.from_pretrained("gpt2")

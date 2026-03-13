@@ -55,7 +55,7 @@ from transformers import (
 )
 from transformers.pytorch_utils import Conv1D
 
-from peft import (
+from src.peft.src.peft import (
     AdaLoraConfig,
     ArrowConfig,
     EvaConfig,
@@ -77,13 +77,13 @@ from peft import (
     replace_lora_weights_loftq,
     set_peft_model_state_dict,
 )
-from peft.import_utils import is_diffusers_available, is_xpu_available
-from peft.tuners import boft
-from peft.tuners.tuners_utils import BaseTunerLayer
-from peft.utils import SAFETENSORS_WEIGHTS_NAME, infer_device
-from peft.utils.hotswap import hotswap_adapter, prepare_model_for_compiled_hotswap
-from peft.utils.loftq_utils import NFQuantizer
-from peft.utils.other import fsdp_auto_wrap_policy
+from src.peft.src.peft.import_utils import is_diffusers_available, is_xpu_available
+from src.peft.src.peft.tuners import boft
+from src.peft.src.peft.tuners.tuners_utils import BaseTunerLayer
+from src.peft.src.peft.utils import SAFETENSORS_WEIGHTS_NAME, infer_device
+from src.peft.src.peft.utils.hotswap import hotswap_adapter, prepare_model_for_compiled_hotswap
+from src.peft.src.peft.utils.loftq_utils import NFQuantizer
+from src.peft.src.peft.utils.other import fsdp_auto_wrap_policy
 from tests.testing_utils import hub_online_once
 
 from .testing_utils import (

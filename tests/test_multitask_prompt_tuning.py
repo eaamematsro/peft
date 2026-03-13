@@ -20,12 +20,12 @@ import torch
 from torch.testing import assert_close
 from transformers import AutoModelForCausalLM
 
-from peft import get_peft_model
-from peft.peft_model import PeftModel
-from peft.tuners.multitask_prompt_tuning import MultitaskPromptTuningConfig, MultitaskPromptTuningInit
-from peft.utils import infer_device
-from peft.utils.other import WEIGHTS_NAME, prepare_model_for_kbit_training
-from peft.utils.save_and_load import get_peft_model_state_dict
+from src.peft.src.peft import get_peft_model
+from src.peft.src.peft.peft_model import PeftModel
+from src.peft.src.peft.tuners.multitask_prompt_tuning import MultitaskPromptTuningConfig, MultitaskPromptTuningInit
+from src.peft.src.peft.utils import infer_device
+from src.peft.src.peft.utils.other import WEIGHTS_NAME, prepare_model_for_kbit_training
+from src.peft.src.peft.utils.save_and_load import get_peft_model_state_dict
 
 
 MODELS_TO_TEST = [

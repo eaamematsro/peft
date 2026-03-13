@@ -40,7 +40,7 @@ Prepare a model for training with a PEFT method such as LoRA by wrapping the bas
 
 ```python
 from transformers import AutoModelForCausalLM
-from peft import LoraConfig, TaskType, get_peft_model
+from src.peft.src.peft import LoraConfig, TaskType, get_peft_model
 
 device = torch.accelerator.current_accelerator().type if hasattr(torch, "accelerator") else "cuda"
 model_id = "Qwen/Qwen2.5-3B-Instruct"
@@ -63,7 +63,7 @@ To load a PEFT model for inference:
 
 ```python
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 
 device = torch.accelerator.current_accelerator().type if hasattr(torch, "accelerator") else "cuda"
 model_id = "Qwen/Qwen2.5-3B-Instruct"
@@ -134,7 +134,7 @@ The iterative diffusion process consumes a lot of memory which can make it diffi
 PEFT is directly integrated with [Transformers](https://huggingface.co/docs/transformers/main/en/peft). After loading a model, call `add_adapter` to add a new PEFT adapter to the model:
 
 ```python
-from peft import LoraConfig
+from src.peft.src.peft import LoraConfig
 model = ...  # transformers model
 peft_config = LoraConfig(...)
 model.add_adapter(lora_config, adapter_name="lora_1")

@@ -27,7 +27,7 @@ from transformers import (
     TrainingArguments,
 )
 
-from peft import CPTConfig, TaskType, get_peft_model
+from src.peft.src.peft import CPTConfig, TaskType, get_peft_model
 
 
 TEMPLATE = {"input": "input: {}", "intra_seperator": " ", "output": "output: {}", "inter_seperator": "\n"}

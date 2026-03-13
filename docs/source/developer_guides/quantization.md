@@ -59,7 +59,7 @@ model = AutoModelForCausalLM.from_pretrained("mistralai/Mistral-7B-v0.1", quanti
 Next, you should call the [`~peft.utils.prepare_model_for_kbit_training`] function to preprocess the quantized model for training.
 
 ```py
-from peft import prepare_model_for_kbit_training
+from src.peft.src.peft import prepare_model_for_kbit_training
 
 model = prepare_model_for_kbit_training(model)
 ```
@@ -71,7 +71,7 @@ Now that the quantized model is ready, let's set up a configuration.
 Create a [`LoraConfig`] with the following parameters (or choose your own):
 
 ```py
-from peft import LoraConfig
+from src.peft.src.peft import LoraConfig
 
 config = LoraConfig(
     r=16,
@@ -86,7 +86,7 @@ config = LoraConfig(
 Then use the [`get_peft_model`] function to create a [`PeftModel`] from the quantized model and configuration.
 
 ```py
-from peft import get_peft_model
+from src.peft.src.peft import get_peft_model
 
 model = get_peft_model(model, config)
 ```
@@ -176,7 +176,7 @@ model = AutoModelForCausalLM.from_pretrained("mistralai/Mistral-7B-v0.1", quanti
 and create a `LoraConfig` and pass it to `get_peft_model`:
 
 ```py
-from peft import LoraConfig, get_peft_model
+from src.peft.src.peft import LoraConfig, get_peft_model
 
 config = LoraConfig(
     r=16,
@@ -220,7 +220,7 @@ quantized_model = get_peft_model(quantized_model, peft_config)
 PEFT supports models quantized with [torchao](https://github.com/pytorch/ao) ("ao") for int8 quantization.
 
 ```python
-from peft import LoraConfig, get_peft_model
+from src.peft.src.peft import LoraConfig, get_peft_model
 from transformers import AutoModelForCausalLM, TorchAoConfig
 
 model_id = ...

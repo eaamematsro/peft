@@ -38,7 +38,7 @@ Inside this directory, you will find a default configuration file called `defaul
 Finally, you need to create a PEFT configuration file for the PEFT method you want to add. This should be a JSON file called `adapter_config.json`, placed in the same directory. Below is an example of how this could look:
 
 ```python
-from peft import LoraConfig
+from src.peft.src.peft import LoraConfig
 config = LoraConfig(r=123)
 config.save_pretrained("experiments/lora/llama-3.2-3B-rank123/")
 ```

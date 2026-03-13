@@ -18,7 +18,7 @@ import torch
 from huggingface_hub import ModelCard
 from transformers import AutoModelForCausalLM
 
-from peft import AutoPeftModelForCausalLM, BoneConfig, LoraConfig, PeftConfig, PeftModel, TaskType, get_peft_model
+from src.peft.src.peft import AutoPeftModelForCausalLM, BoneConfig, LoraConfig, PeftConfig, PeftModel, TaskType, get_peft_model
 
 from .testing_utils import hub_online_once
 

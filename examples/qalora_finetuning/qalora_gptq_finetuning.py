@@ -18,7 +18,7 @@ from transformers import (
     TrainingArguments,
 )
 
-from peft import LoraConfig, get_peft_model
+from src.peft.src.peft import LoraConfig, get_peft_model
 
 
 def load_or_quantize_model(

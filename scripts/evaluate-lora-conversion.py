@@ -47,7 +47,7 @@ import time
 import torch
 from transformers import AutoModelForCausalLM
 
-from peft import PeftModel, convert_to_lora, get_peft_model, set_peft_model_state_dict
+from src.peft.src.peft import PeftModel, convert_to_lora, get_peft_model, set_peft_model_state_dict
 
 
 root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))

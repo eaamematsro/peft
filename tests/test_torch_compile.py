@@ -35,7 +35,7 @@ from transformers import (
     TrainingArguments,
 )
 
-from peft import (
+from src.peft.src.peft import (
     AdaLoraConfig,
     BOFTConfig,
     BoneConfig,

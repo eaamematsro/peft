@@ -50,7 +50,7 @@ This is a straightforward multilayer perceptron with an input layer, a hidden la
 
 > [!TIP]
 > For this toy example, we choose an exceedingly large number of hidden units to highlight the efficiency gains
-> from PEFT, but those gains are in line with more realistic examples.
+> from src.peft.src.peft, but those gains are in line with more realistic examples.
 
 There are a few linear layers in this model that could be tuned with LoRA. When working with common 🤗 Transformers
 models, PEFT will know which layers to apply LoRA to, but in this case, it is up to us as a user to choose the layers.
@@ -78,7 +78,7 @@ let's assume we want to update the output layer without LoRA, that would be `'se
 be:
 
 ```python
-from peft import LoraConfig
+from src.peft.src.peft import LoraConfig
 
 config = LoraConfig(
     target_modules=["seq.0", "seq.2"],
@@ -89,7 +89,7 @@ config = LoraConfig(
 With that, we can create our PEFT model and check the fraction of parameters trained:
 
 ```python
-from peft import get_peft_model
+from src.peft.src.peft import get_peft_model
 
 model = MLP()
 peft_model = get_peft_model(model, config)
@@ -204,7 +204,7 @@ When new popular transformers architectures are released, we do our best to quic
 As a first step, it is a good idea to check the existing models for inspiration. You can find them inside of [constants.py](https://github.com/huggingface/peft/blob/main/src/peft/utils/constants.py) in the PEFT repository. Often, you'll find a similar architecture that uses the same names. For example, if the new model architecture is a variation of the "mistral" model and you want to apply LoRA, you can see that the entry for "mistral" in `TRANSFORMERS_MODELS_TO_LORA_TARGET_MODULES_MAPPING` contains `["q_proj", "v_proj"]`. This tells you that for "mistral" models, the `target_modules` for LoRA should be `["q_proj", "v_proj"]`:
 
 ```python
-from peft import LoraConfig, get_peft_model
+from src.peft.src.peft import LoraConfig, get_peft_model
 
 my_mistral_model = ...
 config = LoraConfig(

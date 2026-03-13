@@ -71,10 +71,10 @@ The distinction between CorDA with other similar LoRA initialization methods is 
 
 ```py
 import torch
-from peft import LoraConfig, get_peft_model
+from src.peft.src.peft import LoraConfig, get_peft_model
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from peft.tuners.lora.config import CordaConfig
-from peft.tuners.lora.corda import preprocess_corda
+from src.peft.src.peft.tuners.lora.config import CordaConfig
+from src.peft.src.peft.tuners.lora.corda import preprocess_corda
 from trl import SFTConfig, SFTTrainer
 from datasets import load_dataset
 
@@ -232,7 +232,7 @@ This conversion enables the loading of LoRA on top of a standard base model:
 
 ```python
 import torch
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 from transformers import AutoModelForCausalLM
 
 model = AutoModelForCausalLM.from_pretrained(

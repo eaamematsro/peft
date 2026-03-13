@@ -22,7 +22,7 @@ import unittest
 import torch
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
-from peft import PeftModel, PolyConfig, TaskType, get_peft_model
+from src.peft.src.peft import PeftModel, PolyConfig, TaskType, get_peft_model
 
 
 class TestPoly(unittest.TestCase):

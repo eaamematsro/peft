@@ -17,12 +17,12 @@ import torch
 from torch import nn
 from transformers import AutoModelForCausalLM
 
-from peft import LoraConfig, TaskType, get_peft_model
-from peft.tuners.lora.layer import Conv1d as LoraConv1d
-from peft.tuners.lora.layer import Conv2d as LoraConv2d
-from peft.tuners.lora.layer import Embedding as LoraEmbedding
-from peft.tuners.lora.layer import Linear as LoraLinear
-from peft.tuners.lora.variants import (
+from src.peft.src.peft import LoraConfig, TaskType, get_peft_model
+from src.peft.src.peft.tuners.lora.layer import Conv1d as LoraConv1d
+from src.peft.src.peft.tuners.lora.layer import Conv2d as LoraConv2d
+from src.peft.src.peft.tuners.lora.layer import Embedding as LoraEmbedding
+from src.peft.src.peft.tuners.lora.layer import Linear as LoraLinear
+from src.peft.src.peft.tuners.lora.variants import (
     ALoraLinearVariant,
     DoraConv1dVariant,
     DoraConv2dVariant,

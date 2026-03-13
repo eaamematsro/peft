@@ -6,7 +6,7 @@ import transformers
 from datasets import load_dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
-from peft import LoraConfig, get_peft_model
+from src.peft.src.peft import LoraConfig, get_peft_model
 
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # force to use CUDA GPU device 0
@@ -165,7 +165,7 @@ You can also directly load adapters from the Hub using the commands below:
 """
 
 # import torch
-# from peft import PeftModel, PeftConfig
+# from src.peft.src.peft import PeftModel, PeftConfig
 # from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 #
 # peft_model_id = "ybelkada/opt-6.7b-lora"

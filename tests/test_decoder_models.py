@@ -29,7 +29,7 @@ from transformers import (
 )
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
-from peft import (
+from src.peft.src.peft import (
     AdaLoraConfig,
     BOFTConfig,
     BoneConfig,
@@ -63,7 +63,7 @@ from .testing_common import PeftCommonTester
 from .testing_utils import device_count, hub_online_once, load_dataset_english_quotes, set_init_weights_false
 
 
-# Note: some models from peft-internal-testing are just the safetensors versions of hf-internal-testing
+# Note: some models from src.peft.src.peft-internal-testing are just the safetensors versions of hf-internal-testing
 PEFT_DECODER_MODELS_TO_TEST = [
     "peft-internal-testing/tiny-random-OPTForCausalLM",
     "peft-internal-testing/tiny-random-GPT2LMHeadModel",

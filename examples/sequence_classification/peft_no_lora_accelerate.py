@@ -9,13 +9,13 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, get_linear_schedule_with_warmup, set_seed
 
-from peft import (
+from src.peft.src.peft import (
     PrefixTuningConfig,
     PromptEncoderConfig,
     PromptTuningConfig,
     get_peft_model,
 )
-from peft.utils.other import fsdp_auto_wrap_policy
+from src.peft.src.peft.utils.other import fsdp_auto_wrap_policy
 
 
 def parse_args():

@@ -45,7 +45,7 @@ import time
 from huggingface_hub import snapshot_download
 from transformers import AutoModelForCausalLM
 
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 
 
 def main():

@@ -21,8 +21,8 @@ import torch.nn.functional as F
 from torch.utils.data import Dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 
-from peft import CartridgeConfig, get_peft_model
-from peft.tuners.cartridge.utils import initialize_kv_prefix_from_text
+from src.peft.src.peft import CartridgeConfig, get_peft_model
+from src.peft.src.peft.tuners.cartridge.utils import initialize_kv_prefix_from_text
 
 
 class DistillJsonlDataset(Dataset):

@@ -19,8 +19,8 @@ import torch
 from train_distill import DistillationCollator, DistillationTrainer, DistillJsonlDataset
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
 
-from peft import CartridgeConfig, get_peft_model
-from peft.tuners.cartridge.utils import initialize_kv_prefix_from_text
+from src.peft.src.peft import CartridgeConfig, get_peft_model
+from src.peft.src.peft.tuners.cartridge.utils import initialize_kv_prefix_from_text
 
 
 def main():

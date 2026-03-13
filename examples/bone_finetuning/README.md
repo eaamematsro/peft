@@ -6,7 +6,7 @@ Low-Rank Adaptation (LoRA) leverages the low intrinsic rank of weight updates in
 ## Quick Start
 ```python
 import torch
-from peft import LoraConfig, get_peft_model
+from src.peft.src.peft import LoraConfig, get_peft_model
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import SFTConfig, SFTTrainer
 from datasets import load_dataset
@@ -43,7 +43,7 @@ peft_model.save_pretrained("bone-llama-2-7b")
 To utilize the fine-tuned Bone modules, simply run the following command:
 ```python
 import torch
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 from transformers import AutoModelForCausalLM
 
 model = AutoModelForCausalLM.from_pretrained(

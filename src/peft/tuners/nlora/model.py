@@ -85,23 +85,74 @@ class NonlinearLoraModel(BaseTuner):
         if zeroshift is None:
             zeroshift = getattr(cfg, "consolidate_zero_shift", False)
 
-        layer_states: dict[NonlinearLoraLinear, dict] = {}
-        hooks = []
+        assert lr, "LR must be specified for consolidation, either via argument or config"
+        if lr >= 1e-8:
+            layer_states: dict[NonlinearLoraLinear, dict] = {}
+            hooks = []
 
-        def make_hook(layer: NonlinearLoraLinear):
-            def hook(module, inputs, output):
-                x = inputs[0] # (batch_size, seq_len, in_features)
-                layer.accumulate_consolidation_stats(
-                    x=x,
-                    adapter_name=adapter_name,
+            def make_hook(layer: NonlinearLoraLinear):
+                def hook(module, inputs, output):
+                    x = inputs[0] # (batch_size, seq_len, in_features)
+                    layer.accumulate_consolidation_stats(
+                        x=x,
+                        adapter_name=adapter_name,
+                        state=layer_states[layer],
+                        off_load_to_cpu=offload_cpu,
+                        accum_dtype=accum_dtype,
+                        lambda_=lambda_,
+                        scale_lambda_by_trace=scale_lambda_by_trace,
+                        consolidate_rls=consolidate_rls,
+                    )
+                return hook
+
+            # register hooks + init states
+            layers = []
+            update_count = self.consolidation_updates % update_frequency
+            for m in self.model.modules():
+                if isinstance(m, NonlinearLoraLinear):
+                    if (update_count % update_frequency) == 0:
+                        layers.append(m)
+                        layer_states[m] = {}
+                        hooks.append(m.register_forward_hook(make_hook(m)))
+                    update_count += 1
+            # accumulate stats
+            self.model.eval()
+            dev = next(self.model.parameters()).device
+
+            for i, batch in enumerate(dataloader):
+                if max_batches is not None and i >= max_batches:
+                    break
+                if isinstance(batch, dict):
+                    batch = {k: v.to(dev) for k, v in batch.items()}
+                    _ = self.model(**batch)
+                else:
+                    # if your dataloader yields (input_ids, attention_mask, labels) tuples etc.
+                    _ = self.model(*batch)
+
+            for h in hooks:
+                h.remove()
+
+            # solve + merge per layer
+            for layer in layers:
+                layer.solve_and_merge(
                     state=layer_states[layer],
+<<<<<<< Updated upstream
                     off_load_to_cpu=offload_cpu,
                     accum_dtype=accum_dtype,
                     lambda_=lambda_,
                     scale_lambda_by_trace=scale_lambda_by_trace,
+=======
+                    lr_=lr,
+                    lambda_w=lambda_,
+                    scale_by_lambda_=scale_lambda_by_trace,
+                    adapter_name=adapter_name,
+                    inplace_disable_adapter=inplace_disable_adapter,
+                    consolidate_rls=consolidate_rls,
+                    zeroshift=zeroshift,
+>>>>>>> Stashed changes
                 )
-            return hook
 
+<<<<<<< Updated upstream
         # register hooks + init states
         layers = []
         update_count = self.consolidation_updates % update_frequency
@@ -143,3 +194,8 @@ class NonlinearLoraModel(BaseTuner):
         self.consolidation_updates += 1
 
         return layer_states
+=======
+            self.consolidation_updates += 1
+
+            return layer_states
+>>>>>>> Stashed changes

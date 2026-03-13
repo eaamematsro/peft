@@ -86,7 +86,7 @@ model = AutoModelForCausalLM.from_pretrained("facebook/opt-350m")
 Next, add an adapter configuration to specify how to adapt the model parameters. Call the [`~PeftModel.add_adapter`] method to add the configuration to the base model.
 
 ```py
-from peft import LoraConfig
+from src.peft.src.peft import LoraConfig
 
 peft_config = LoraConfig(
     lora_alpha=16,
@@ -121,7 +121,7 @@ If you're interested in comparing or using more than one adapter, you can call t
 
 ```py
 from transformers import AutoModelForCausalLM
-from peft import LoraConfig
+from src.peft.src.peft import LoraConfig
 
 model = AutoModelForCausalLM.from_pretrained("facebook/opt-350m")
 model.add_adapter(lora_config_1, adapter_name="adapter_1")

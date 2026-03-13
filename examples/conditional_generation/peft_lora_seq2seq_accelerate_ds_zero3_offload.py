@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, get_linear_schedule_with_warmup, set_seed
 
-from peft import LoraConfig, TaskType, get_peft_model
+from src.peft.src.peft import LoraConfig, TaskType, get_peft_model
 
 
 def levenshtein_distance(str1, str2):

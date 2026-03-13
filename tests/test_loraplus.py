@@ -16,8 +16,8 @@ from __future__ import annotations
 import torch
 from torch import nn
 
-from peft.import_utils import is_bnb_available
-from peft.optimizers import create_loraplus_optimizer
+from src.peft.src.peft.import_utils import is_bnb_available
+from src.peft.src.peft.optimizers import create_loraplus_optimizer
 
 from .testing_utils import require_bitsandbytes, torch_device
 

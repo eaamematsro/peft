@@ -21,7 +21,7 @@ from datasets import load_dataset
 from transformers import AutoModelForCausalLM, AutoTokenizer, HfArgumentParser
 from trl import SFTConfig, SFTTrainer
 
-from peft import BoneConfig, get_peft_model
+from src.peft.src.peft import BoneConfig, get_peft_model
 
 
 @dataclass

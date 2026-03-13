@@ -156,7 +156,7 @@ Every PEFT method requires a configuration that holds all the parameters specify
 [LoRA](../conceptual_guides/adapter#low-rank-adaptation-lora) decomposes the weight update matrix into *two* smaller matrices. The size of these low-rank matrices is determined by its *rank* or `r`. A higher rank means the model has more parameters to train, but it also means the model has more learning capacity. You'll also want to specify the `target_modules` which determine where the smaller matrices are inserted. For this guide, you'll target the *query* and *value* matrices of the attention blocks. Other important parameters to set are `lora_alpha` (scaling factor), `bias` (whether `none`, `all` or only the LoRA bias parameters should be trained), and `modules_to_save` (the modules apart from the LoRA layers to be trained and saved). All of these parameters - and more - are found in the [`LoraConfig`].
 
 ```py
-from peft import LoraConfig, get_peft_model
+from src.peft.src.peft import LoraConfig, get_peft_model
 
 config = LoraConfig(
     r=16,
@@ -177,7 +177,7 @@ model.print_trainable_parameters()
 [LoHa](../conceptual_guides/adapter#low-rank-hadamard-product-loha) decomposes the weight update matrix into *four* smaller matrices and each pair of smaller matrices is combined with the Hadamard product. This allows the weight update matrix to keep the same number of trainable parameters when compared to LoRA, but with a higher rank (`r^2` for LoHA when compared to `2*r` for LoRA). The size of the smaller matrices is determined by its *rank* or `r`. You'll also want to specify the `target_modules` which determines where the smaller matrices are inserted. For this guide, you'll target the *query* and *value* matrices of the attention blocks. Other important parameters to set are `alpha` (scaling factor), and `modules_to_save` (the modules apart from the LoHa layers to be trained and saved). All of these parameters - and more - are found in the [`LoHaConfig`].
 
 ```py
-from peft import LoHaConfig, get_peft_model
+from src.peft.src.peft import LoHaConfig, get_peft_model
 
 config = LoHaConfig(
     r=16,
@@ -197,7 +197,7 @@ model.print_trainable_parameters()
 [LoKr](../conceptual_guides/adapter#low-rank-kronecker-product-lokr) expresses the weight update matrix as a decomposition of a Kronecker product, creating a block matrix that is able to preserve the rank of the original weight matrix. The size of the smaller matrices are determined by its *rank* or `r`. You'll also want to specify the `target_modules` which determines where the smaller matrices are inserted. For this guide, you'll target the *query* and *value* matrices of the attention blocks. Other important parameters to set are `alpha` (scaling factor), and `modules_to_save` (the modules apart from the LoKr layers to be trained and saved). All of these parameters - and more - are found in the [`LoKrConfig`].
 
 ```py
-from peft import LoKrConfig, get_peft_model
+from src.peft.src.peft import LoKrConfig, get_peft_model
 
 config = LoKrConfig(
     r=16,
@@ -217,7 +217,7 @@ model.print_trainable_parameters()
 [AdaLoRA](../conceptual_guides/adapter#adaptive-low-rank-adaptation-adalora) efficiently manages the LoRA parameter budget by assigning important weight matrices more parameters and pruning less important ones. In contrast, LoRA evenly distributes parameters across all modules. You can control the average desired *rank* or `r` of the matrices, and which modules to apply AdaLoRA to with `target_modules`. Other important parameters to set are `lora_alpha` (scaling factor), and `modules_to_save` (the modules apart from the AdaLoRA layers to be trained and saved). All of these parameters - and more - are found in the [`AdaLoraConfig`].
 
 ```py
-from peft import AdaLoraConfig, get_peft_model
+from src.peft.src.peft import AdaLoraConfig, get_peft_model
 
 config = AdaLoraConfig(
     r=8,
@@ -302,7 +302,7 @@ model.push_to_hub(peft_model_id)
 Let's load the model from the Hub and test it out on a food image.
 
 ```py
-from peft import PeftConfig, PeftModel
+from src.peft.src.peft import PeftConfig, PeftModel
 from transformers import AutoImageProcessor
 from PIL import Image
 import requests

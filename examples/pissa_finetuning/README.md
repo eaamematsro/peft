@@ -5,7 +5,7 @@ PiSSA represents a matrix $W\in\mathbb{R}^{m\times n}$ within the model by the p
 ## Quick Start
 ```python
 import torch
-from peft import LoraConfig, get_peft_model
+from src.peft.src.peft import LoraConfig, get_peft_model
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import SFTConfig, SFTTrainer
 from datasets import load_dataset
@@ -39,7 +39,7 @@ When utilizing fast SVD, reducing the rank and the number of iterations decrease
 To utilize the fine-tuned PiSSA modules, simply run the following command:
 ```python
 import torch
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 from transformers import AutoModelForCausalLM
 
 model = AutoModelForCausalLM.from_pretrained(
@@ -79,7 +79,7 @@ This conversion enables the loading of LoRA on top of a standard base model:
 
 ```python
 import torch
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 from transformers import AutoModelForCausalLM
 
 model = AutoModelForCausalLM.from_pretrained(

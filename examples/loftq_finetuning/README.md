@@ -18,7 +18,7 @@ For step 2, below is an example of loading 4bit Mistral-7B with 64rank LoRA adap
 ```python
 import torch
 from transformers import AutoModelForCausalLM, BitsAndBytesConfig
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 
 MODEL_ID = "LoftQ/Mistral-7B-v0.1-4bit-64rank"
 
@@ -75,7 +75,7 @@ Similar to loading from Huggingface Hub, we only need to change the `MODEL_ID` t
 ```python
 import torch
 from transformers import AutoModelForCausalLM, BitsAndBytesConfig
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 
 MODEL_DIR = "model_zoo/loftq/Llama-2-7b-hf-4bit-16rank"
 

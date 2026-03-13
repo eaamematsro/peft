@@ -38,7 +38,7 @@ from torchvision import transforms
 from tqdm.auto import tqdm
 from transformers import AutoTokenizer, PretrainedConfig
 
-from peft import LoHaConfig, LoKrConfig, LoraConfig, get_peft_model
+from src.peft.src.peft import LoHaConfig, LoKrConfig, LoraConfig, get_peft_model
 
 
 # Will error if the minimal version of diffusers is not installed. Remove at your own risks.

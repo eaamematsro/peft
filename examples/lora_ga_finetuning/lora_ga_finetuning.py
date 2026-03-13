@@ -27,8 +27,8 @@ from transformers import (
     default_data_collator,
 )
 
-from peft import LoraConfig, get_peft_model
-from peft.tuners.lora import LoraGAConfig, preprocess_loraga
+from src.peft.src.peft import LoraConfig, get_peft_model
+from src.peft.src.peft.tuners.lora import LoraGAConfig, preprocess_loraga
 
 
 def parse_args():
@@ -269,7 +269,7 @@ def main():
     print("DONE!")
     print("=" * 70)
     print("\nYou can now use the trained adapter with:")
-    print("  from peft import PeftModel")
+    print("  from src.peft.src.peft import PeftModel")
     print("  from transformers import AutoModelForCausalLM")
     print(f"  model = AutoModelForCausalLM.from_pretrained('{args.base_model}')")
     print(f"  model = PeftModel.from_pretrained(model, '{args.output_dir}')")

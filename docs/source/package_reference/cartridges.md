@@ -41,7 +41,7 @@ Load a trained CARTRIDGE adapter and run generation:
 ```py
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 
 model_id = "Qwen/Qwen2.5-0.5B-Instruct"
 adapter_path = "path/to/cartridge_adapter"

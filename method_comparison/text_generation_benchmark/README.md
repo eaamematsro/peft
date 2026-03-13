@@ -108,7 +108,7 @@ To create a new experiment, follow these steps:
    Use the PEFT library to create and save your adapter config:
 
    ```python
-   from peft import LoraConfig
+   from src.peft.src.peft import LoraConfig
 
    config = LoraConfig(
        lora_alpha=16,

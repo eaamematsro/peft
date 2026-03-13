@@ -16,8 +16,8 @@ import torch
 from safetensors.torch import load_file
 from transformers import AutoModelForCausalLM
 
-from peft import BOFTConfig, PeftModel, get_peft_model
-from peft.utils import infer_device
+from src.peft.src.peft import BOFTConfig, PeftModel, get_peft_model
+from src.peft.src.peft.utils import infer_device
 
 
 class TestBoft:

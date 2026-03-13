@@ -21,9 +21,9 @@ from datautils import get_calib_data
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from peft import get_peft_model
-from peft.tuners.lora.config import CordaConfig, LoraConfig
-from peft.tuners.lora.corda import preprocess_corda
+from src.peft.src.peft import get_peft_model
+from src.peft.src.peft.tuners.lora.config import CordaConfig, LoraConfig
+from src.peft.src.peft.tuners.lora.corda import preprocess_corda
 
 
 @torch.no_grad()

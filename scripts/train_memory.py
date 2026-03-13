@@ -63,8 +63,8 @@ from transformers import (
     BitsAndBytesConfig,
 )
 
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
-from peft.utils import CONFIG_NAME, SAFETENSORS_WEIGHTS_NAME
+from src.peft.src.peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+from src.peft.src.peft.utils import CONFIG_NAME, SAFETENSORS_WEIGHTS_NAME
 
 
 # suppress all warnings

@@ -40,7 +40,7 @@ from transformers import (
 from transformers.models.whisper.english_normalizer import BasicTextNormalizer
 
 # peft imports
-from peft import AdaLoraConfig, LoraConfig, PeftModel, get_peft_model
+from src.peft.src.peft import AdaLoraConfig, LoraConfig, PeftModel, get_peft_model
 
 
 logger = get_logger(__name__, log_level="INFO")
@@ -555,7 +555,7 @@ def main():
 
     # preparing peft model
     if args.use_peft:
-        from peft import prepare_model_for_kbit_training
+        from src.peft.src.peft import prepare_model_for_kbit_training
 
         model = prepare_model_for_kbit_training(model)
 

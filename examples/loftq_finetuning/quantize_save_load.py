@@ -24,7 +24,7 @@ from transformers import (
     AutoTokenizer,
 )
 
-from peft import LoftQConfig, LoraConfig, TaskType, get_peft_model
+from src.peft.src.peft import LoftQConfig, LoraConfig, TaskType, get_peft_model
 
 
 class Shell(nn.Module):

@@ -33,7 +33,7 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer, SchedulerType, default_data_collator, get_scheduler
 
-from peft import LoraConfig, TaskType, get_peft_model
+from src.peft.src.peft import LoraConfig, TaskType, get_peft_model
 
 
 logger = get_logger(__name__)

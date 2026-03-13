@@ -16,7 +16,7 @@ import torch
 from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import SFTTrainer, SFTConfig
-from peft import GraloraConfig
+from src.peft.src.peft import GraloraConfig
 
 model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.2-3B", dtype=torch.bfloat16, device_map="auto")
 tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.2-3B")
@@ -47,7 +47,7 @@ python examples/gralora_finetuning/gralora_finetuning.py --base_model meta-llama
 You can load and use the model as any other 🤗 models.
 ```python
 import torch
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 from transformers import AutoModelForCausalLM
 
 model = AutoModelForCausalLM.from_pretrained(

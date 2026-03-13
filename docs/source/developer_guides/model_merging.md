@@ -42,7 +42,7 @@ This shouldn't be an issue if you're only merging LoRA adapters trained from the
 Load a base model and can use the [`~PeftModel.load_adapter`] method to load and assign each adapter a name:
 
 ```py
-from peft import PeftConfig, PeftModel
+from src.peft.src.peft import PeftConfig, PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 

@@ -15,7 +15,7 @@ import pytest
 import torch
 from transformers import AutoModelForSequenceClassification
 
-from peft import (
+from src.peft.src.peft import (
     AdaLoraConfig,
     BOFTConfig,
     BoneConfig,
@@ -39,13 +39,13 @@ from peft import (
     WaveFTConfig,
     get_peft_model,
 )
-from peft.utils.other import ModulesToSaveWrapper
+from src.peft.src.peft.utils.other import ModulesToSaveWrapper
 
 from .testing_common import PeftCommonTester
 from .testing_utils import hub_online_once, set_init_weights_false
 
 
-# Note: models from peft-internal-testing are just the safetensors versions of hf-internal-testing
+# Note: models from src.peft.src.peft-internal-testing are just the safetensors versions of hf-internal-testing
 PEFT_SEQ_CLS_MODELS_TO_TEST = [
     "peft-internal-testing/tiny-random-BertForSequenceClassification",
     "peft-internal-testing/tiny-random-RobertaForSequenceClassification",

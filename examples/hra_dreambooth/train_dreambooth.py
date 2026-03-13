@@ -55,7 +55,7 @@ from utils.args_loader import (
 from utils.dataset import DreamBoothDataset, PromptDataset, collate_fn
 from utils.tracemalloc import TorchTracemalloc, b2mb
 
-from peft import HRAConfig, get_peft_model
+from src.peft.src.peft import HRAConfig, get_peft_model
 
 
 # Will error if the minimal version of diffusers is not installed. Remove at your own risks.

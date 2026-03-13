@@ -8,7 +8,7 @@ See the [paper](https://huggingface.co/papers/2504.12397) for more details.
 ## Quick start (shown for Mistral 7B)
 ```python
 import torch
-from peft import LoraConfig, get_peft_model
+from src.peft.src.peft import LoraConfig, get_peft_model
 from transformers import AutoTokenizer, AutoModelForCausalLM, Trainer, DataCollatorForLanguageModeling
 from datasets import load_dataset
 

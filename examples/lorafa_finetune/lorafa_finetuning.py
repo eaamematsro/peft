@@ -26,8 +26,8 @@ from transformers import (
     TrainingArguments,
 )
 
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
-from peft.optimizers import create_lorafa_optimizer
+from src.peft.src.peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+from src.peft.src.peft.optimizers import create_lorafa_optimizer
 
 
 def train_model(

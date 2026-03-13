@@ -6,7 +6,7 @@ MiSS (Matrix Shard Sharing) is a novel PEFT method that adopts a low-rank struct
 ## Quick Start
 ```python
 import torch
-from peft import MissConfig, get_peft_model
+from src.peft.src.peft import MissConfig, get_peft_model
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import SFTConfig, SFTTrainer
 from datasets import load_dataset
@@ -51,7 +51,7 @@ peft_model.save_pretrained("miss-llama-2-7b")
 To utilize the fine-tuned MiSS modules, simply run the following command:
 ```python
 import torch
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 from transformers import AutoModelForCausalLM
 
 model = AutoModelForCausalLM.from_pretrained(

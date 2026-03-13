@@ -13,8 +13,8 @@ In general, this should be faster than deleting one adapter and loading the adap
 ```python
 import torch
 from transformers import AutoModelForCausalLM
-from peft import PeftModel
-from peft.utils.hotswap import hotswap_adapter
+from src.peft.src.peft import PeftModel
+from src.peft.src.peft.utils.hotswap import hotswap_adapter
 
 model_id = ...
 inputs = ...
@@ -37,8 +37,8 @@ with torch.inference_mode():
 ```python
 import torch
 from transformers import AutoModelForCausalLM
-from peft import PeftModel
-from peft.utils.hotswap import hotswap_adapter, prepare_model_for_compiled_hotswap
+from src.peft.src.peft import PeftModel
+from src.peft.src.peft.utils.hotswap import hotswap_adapter, prepare_model_for_compiled_hotswap
 
 model_id = ...
 inputs = ...

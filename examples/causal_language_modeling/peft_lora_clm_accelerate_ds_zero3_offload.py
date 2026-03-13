@@ -17,7 +17,7 @@ from transformers import (
     set_seed,
 )
 
-from peft import LoraConfig, TaskType, get_peft_model
+from src.peft.src.peft import LoraConfig, TaskType, get_peft_model
 
 
 def levenshtein_distance(str1, str2):

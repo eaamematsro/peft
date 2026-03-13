@@ -23,7 +23,7 @@ from pathlib import Path
 from safetensors import safe_open
 from safetensors.torch import save_file
 
-from peft.utils import CONFIG_NAME, SAFETENSORS_WEIGHTS_NAME
+from src.peft.src.peft.utils import CONFIG_NAME, SAFETENSORS_WEIGHTS_NAME
 
 
 def convert_bone_to_miss(bone_dir: Path, miss_dir: Path) -> None:

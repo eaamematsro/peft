@@ -16,7 +16,7 @@ from datasets import load_dataset
 from torch.utils.data import DataLoader, Dataset
 from transformers import AutoModelForVision2Seq, AutoProcessor, BitsAndBytesConfig
 
-from peft import LoraConfig, get_peft_model
+from src.peft.src.peft import LoraConfig, get_peft_model
 
 
 # Let's define the LoraConfig

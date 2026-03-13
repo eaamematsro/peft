@@ -12,7 +12,7 @@ from transformers import (
     TrainingArguments,
 )
 
-from peft import LoraConfig, RandLoraConfig, get_peft_model, prepare_model_for_kbit_training
+from src.peft.src.peft import LoraConfig, RandLoraConfig, get_peft_model, prepare_model_for_kbit_training
 
 
 def train_model(

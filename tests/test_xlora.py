@@ -21,10 +21,10 @@ import torch
 from safetensors.torch import load_file
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from peft import LoraConfig, PeftType, TaskType, XLoraConfig, get_peft_model
-from peft.peft_model import PeftModel
-from peft.tuners.xlora.layer import XLoraLayer
-from peft.utils import infer_device
+from src.peft.src.peft import LoraConfig, PeftType, TaskType, XLoraConfig, get_peft_model
+from src.peft.src.peft.peft_model import PeftModel
+from src.peft.src.peft.tuners.xlora.layer import XLoraLayer
+from src.peft.src.peft.utils import infer_device
 
 from .testing_utils import hub_online_once
 

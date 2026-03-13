@@ -23,7 +23,7 @@ import transformers
 from datasets import load_dataset
 from transformers import Trainer
 
-from peft import LoraConfig, PeftModel, get_peft_model
+from src.peft.src.peft import LoraConfig, PeftModel, get_peft_model
 
 
 IGNORE_INDEX = -100

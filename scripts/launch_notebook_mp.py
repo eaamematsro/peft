@@ -22,7 +22,7 @@ import torch
 from accelerate import notebook_launcher
 
 import peft
-from peft.utils import infer_device
+from src.peft.src.peft.utils import infer_device
 
 
 def init():
