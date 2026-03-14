@@ -85,7 +85,8 @@ class NonlinearLoraModel(BaseTuner):
         if zeroshift is None:
             zeroshift = getattr(cfg, "consolidate_zero_shift", False)
 
-        assert lr, "LR must be specified for consolidation, either via argument or config"
+        assert lr is not None, "LR must be specified for consolidation, either via argument or config"
+
         if lr >= 1e-8:
             layer_states: dict[NonlinearLoraLinear, dict] = {}
             hooks = []
@@ -101,7 +102,6 @@ class NonlinearLoraModel(BaseTuner):
                         accum_dtype=accum_dtype,
                         lambda_=lambda_,
                         scale_lambda_by_trace=scale_lambda_by_trace,
-                        consolidate_rls=consolidate_rls,
                     )
                 return hook
 
@@ -136,23 +136,12 @@ class NonlinearLoraModel(BaseTuner):
             for layer in layers:
                 layer.solve_and_merge(
                     state=layer_states[layer],
-<<<<<<< Updated upstream
                     off_load_to_cpu=offload_cpu,
                     accum_dtype=accum_dtype,
                     lambda_=lambda_,
                     scale_lambda_by_trace=scale_lambda_by_trace,
-=======
-                    lr_=lr,
-                    lambda_w=lambda_,
-                    scale_by_lambda_=scale_lambda_by_trace,
-                    adapter_name=adapter_name,
-                    inplace_disable_adapter=inplace_disable_adapter,
-                    consolidate_rls=consolidate_rls,
-                    zeroshift=zeroshift,
->>>>>>> Stashed changes
                 )
 
-<<<<<<< Updated upstream
         # register hooks + init states
         layers = []
         update_count = self.consolidation_updates % update_frequency
@@ -194,8 +183,3 @@ class NonlinearLoraModel(BaseTuner):
         self.consolidation_updates += 1
 
         return layer_states
-=======
-            self.consolidation_updates += 1
-
-            return layer_states
->>>>>>> Stashed changes
