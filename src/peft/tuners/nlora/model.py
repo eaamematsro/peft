@@ -98,7 +98,6 @@ class NonlinearLoraModel(BaseTuner):
                         x=x,
                         adapter_name=adapter_name,
                         state=layer_states[layer],
-                        off_load_to_cpu=offload_cpu,
                         accum_dtype=accum_dtype,
                         lambda_=lambda_,
                         scale_lambda_by_trace=scale_lambda_by_trace,
