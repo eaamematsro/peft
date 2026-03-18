@@ -117,42 +117,6 @@ class NonlinearLoraModel(BaseTuner):
             # accumulate stats
             self.model.eval()
             dev = next(self.model.parameters()).device
-
-            for i, batch in enumerate(dataloader):
-                if max_batches is not None and i >= max_batches:
-                    break
-                if isinstance(batch, dict):
-                    batch = {k: v.to(dev) for k, v in batch.items()}
-                    _ = self.model(**batch)
-                else:
-                    # if your dataloader yields (input_ids, attention_mask, labels) tuples etc.
-                    _ = self.model(*batch)
-
-            for h in hooks:
-                h.remove()
-
-            # solve + merge per layer
-            for layer in layers:
-                layer.solve_and_merge(
-                    state=layer_states[layer],
-                    accum_dtype=accum_dtype,
-                    lambda_=lambda_,
-                    scale_lambda_by_trace=scale_lambda_by_trace,
-                )
-
-            # register hooks + init states
-            layers = []
-            update_count = self.consolidation_updates % update_frequency
-            for m in self.model.modules():
-                if isinstance(m, NonlinearLoraLinear):
-                    if (update_count % update_frequency) == 0:
-                        layers.append(m)
-                        layer_states[m] = {}
-                        hooks.append(m.register_forward_hook(make_hook(m)))
-                    update_count += 1
-            # accumulate stats
-            self.model.eval()
-            dev = next(self.model.parameters()).device
             for i, batch in enumerate(dataloader):
                 if max_batches is not None and i >= max_batches:
                     break

@@ -151,10 +151,12 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
         
         zA = z2.to(dev, dtype=accum_dtype)
 
-        state["uzt"] = rA.T
-        state["zt"] = zA.T
-        state["xt"] = xA.T
-        state["zzt"] = zA.T @ zA
+        if "zzt" not in state:
+            state["zzt"]    = zA.T @ zA           # [r, r]
+            state["zx_dW"]  = zA.T @ xA           # [r, d] -- accumulate this instead
+        else:
+            state["zzt"]   += zA.T @ zA
+            state["zx_dW"] += zA.T @ xA
 
 
     @torch.no_grad()
@@ -165,13 +167,11 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
         Returns U of shape [r, out] which can be merged into base weights as base_w += (V @ U).T
         """
         # b = (U @ phi(x @ V).T - dW x).T = (phi(x @ V) @ U - dW.T x.T), this is the regression residual we want to minimize
-        dev = state["uzt"].device
+        dev = state["zzt"].device
         dW = dW.to(dev)
-        zt = state["zt"]    # [T, r]
-        zzt = state["zzt"]  # [r, r] # gram matrix
-        xt = state["xt"]    # [T, d]
         alpha = self.scaling[adapter_name]
-        target = -1/alpha * zt @ (xt.T @ dW) # [T, d]
+        zzt = state["zzt"]  # [r, r]
+        target = -1/alpha * state["zx_dW"] @ dW  # [r, d] @ [d, m] = [r, m]
 
         if scale_lambda_by_trace:
             lambda_scaled = lambda_ * (torch.trace(zzt) / zzt.size(0)).clamp_min(1e-6)
