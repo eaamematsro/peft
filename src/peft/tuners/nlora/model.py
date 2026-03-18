@@ -1,6 +1,7 @@
 # model.py
 import torch
 import torch.nn as nn
+import torch.distributed as dist
 from peft.tuners.tuners_utils import BaseTuner
 
 from .layer import NonlinearLoraLinear
@@ -129,6 +130,17 @@ class NonlinearLoraModel(BaseTuner):
 
             for h in hooks:
                 h.remove()
+
+            if dist.is_available() and dist.is_initialized():
+                for layer in layers:
+                    state = layer_states[layer]
+                    dist.all_reduce(state["xxt"], op=dist.ReduceOp.SUM)
+                    dist.all_reduce(state["xzt"], op=dist.ReduceOp.SUM)
+                    dist.all_reduce(state["zzt"], op=dist.ReduceOp.SUM)
+                    # zeroshift stats - sum the gram matrix
+                    # xt, zt, uzt are handled via zx_dW if you've made that fix
+                    if "zx_dW" in state:
+                        dist.all_reduce(state["zx_dW"], op=dist.ReduceOp.SUM)
 
             # solve + merge per layer
             for layer in layers:

@@ -104,14 +104,10 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
         Docstring for accumulate_consolidation_stats
         x: [*, d_in]
         the state should hold
-            - "xxt": [d_in, d_in] sum of x_i x_i^T
-            - "xzt": [d_in, r] sum of x_i z_i^T, where z_i is (phi(x @ V) @ U)_i
-            - "zzt": [r, r] sum of z_i z_i^T (optional, only needed for some variants of RLS)
-            - "uzt": [d_in, T] (optional) phi(x @ V) @ U for each sample, used for zero-shift consolidation
-            - "zt": [r, T] (optional) x^T for each sample, used for zero-shift consolidation
-            - "xt": [d_in, T] (optional) x for each sample, used for zero-shift consolidation
-            - "pn": [d_in, d_in] precision matrix used for incremental updates (optional, can be computed on the fly from xxt)
-            - "wn": [d_in, r] weight matrix used for incremental updates (optional, can be computed on the fly from xxt)
+            -   "xxt":   [d, d]  sum of x_i x_i^T
+            -   "xzt":   [d, m]  sum of x_i delta_i^T
+            -   "zzt":   [r, r]  sum of z_i z_i^T
+            -   "zx_dW": [r, d]  sum of z_i x_i^T (for zeroshift)
         :param self: Description
         :param x: Description
         :param adapter_name: Description
@@ -220,14 +216,15 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
         dW = self.solve_dW(state, lambda_=lambda_w, scale_lambda_by_trace=scale_by_lambda_)  # [d, out]
 
         base_w = self.base_layer.weight.data  # [out, in]
-        dW = dW.to(base_w.device)
+        dW = dW.to(base_w.device, dtype=base_w.dtype)
 
         base_w.data.add_(dW.t() * lr_)
 
         if zeroshift:
             dU = self.solve_dU(adapter_name, lr_ * dW, state, lambda_=lambda_w,
                                scale_lambda_by_trace=scale_by_lambda_)  # [r, out]
-            dU = dU.to(self.nlora_U[adapter_name].weight.data.device)
+            dU = dU.to(self.nlora_U[adapter_name].weight.data.device,
+                        dtype=self.nlora_U[adapter_name].weight.data.dtype)
 
             with torch.no_grad():
                 self.nlora_U[adapter_name].weight.data += dU
