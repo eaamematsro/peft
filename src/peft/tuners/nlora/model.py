@@ -2,6 +2,8 @@
 import torch
 import torch.nn as nn
 import torch.distributed as dist
+from torch.amp import autocast
+from contextlib import nullcontext
 from peft.tuners.tuners_utils import BaseTuner
 
 from .layer import NonlinearLoraLinear
@@ -118,15 +120,26 @@ class NonlinearLoraModel(BaseTuner):
             # accumulate stats
             self.model.eval()
             dev = next(self.model.parameters()).device
+            dev = next(self.model.parameters()).device
+
+            if dev.type == 'cuda':
+                ctx = torch.autocast(device_type='cuda', dtype=torch.bfloat16)
+            elif dev.type == 'mps':
+                ctx = torch.autocast(device_type='mps', dtype=torch.bfloat16)
+            else:
+                ctx = nullcontext()
+
             for i, batch in enumerate(dataloader):
                 if max_batches is not None and i >= max_batches:
                     break
                 if isinstance(batch, dict):
                     batch = {k: v.to(dev) for k, v in batch.items()}
-                    _ = self.model(**batch)
+                    with ctx:
+                       _ = self.model(**batch)
                 else:
                     # if your dataloader yields (input_ids, attention_mask, labels) tuples etc.
-                    _ = self.model(*batch)
+                    with ctx:
+                       _ = self.model(**batch)
 
             for h in hooks:
                 h.remove()

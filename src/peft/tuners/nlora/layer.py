@@ -119,6 +119,8 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
             x2 = x.reshape(-1, x.size(-1))
         else:
             x2 = x
+        
+        x2 = x2.to(dtype=accum_dtype)
 
         delta = self.adapter_delta(x, adapter_name)  # [*, d_out]
 
@@ -164,17 +166,21 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
         """
         # b = (U @ phi(x @ V).T - dW x).T = (phi(x @ V) @ U - dW.T x.T), this is the regression residual we want to minimize
         dev = state["zzt"].device
-        dW = dW.to(dev)
+        accum_dtype = torch.float32
+        dW = dW.to(dev, dtype=accum_dtype)
         alpha = self.scaling[adapter_name]
         zzt = state["zzt"]  # [r, r]
-        target = -1/alpha * state["zx_dW"] @ dW  # [r, d] @ [d, m] = [r, m]
+        zzt = zzt.to(dtype=accum_dtype)
+        zx_dW = state["zx_dW"]  # [r, d]
+        zx_dW = zx_dW.to(dtype=accum_dtype)
+        target = -1/alpha * zx_dW @ dW  # [r, d] @ [d, m] = [r, m]
 
         if scale_lambda_by_trace:
             lambda_scaled = lambda_ * (torch.trace(zzt) / zzt.size(0)).clamp_min(1e-6)
         else:
             lambda_scaled = lambda_
 
-        A = zzt + lambda_scaled * torch.eye(zzt.size(0), device=dev, dtype=zzt.dtype)  # add regularization for numerical stability
+        A = zzt + lambda_scaled * torch.eye(zzt.size(0), device=dev, dtype=accum_dtype)  # add regularization for numerical stability
 
         dU = torch.linalg.solve(A, target).T  # [r, out]
         return dU
