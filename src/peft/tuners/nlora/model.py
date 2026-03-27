@@ -5,6 +5,7 @@ import torch.distributed as dist
 from torch.amp import autocast
 from contextlib import nullcontext
 from peft.tuners.tuners_utils import BaseTuner
+import wandb
 
 from .layer import NonlinearLoraLinear
 
@@ -38,6 +39,42 @@ class NonlinearLoraModel(BaseTuner):
                 raise ValueError(f"Consolidation supports exactly 1 active adapter, got {a}")
             return a[0]
         return a
+    
+    def log_activation_spectrum(self, xxt: torch.Tensor, step: int, accelerator):
+        """Log eigenvalue spectrum of gram matrix for diagnostic purposes."""
+        if not accelerator.is_main_process:
+            return
+        
+        with torch.no_grad():
+            # xxt is [d, d], eigvalsh returns ascending sorted eigenvalues
+            eigvals = torch.linalg.eigvalsh(xxt.float())  # float32 for stability
+            eigvals = eigvals.flip(0)  # descending
+            
+            total = eigvals.sum()
+            cumvar = torch.cumsum(eigvals, dim=0) / total
+            
+            # how many eigenvalues to capture 50%, 90%, 95%, 99%
+            thresholds = [0.5, 0.9, 0.95, 0.99]
+            rank_at = {}
+            for t in thresholds:
+                rank_at[t] = (cumvar < t).sum().item() + 1
+            
+            # ratio of top-r mean to trace/d for your current normalizer comparison
+            d = eigvals.shape[0]
+            r = 8  # your LoRA rank, or pass it in
+            top_r_mean = eigvals[:r].mean().item()
+            trace_over_d = eigvals.sum().item() / d
+            
+            wandb.log({
+                "spectrum/rank_at_50pct": rank_at[0.5],
+                "spectrum/rank_at_90pct": rank_at[0.9],
+                "spectrum/rank_at_95pct": rank_at[0.95],
+                "spectrum/rank_at_99pct": rank_at[0.99],
+                "spectrum/top_r_mean": top_r_mean,
+                "spectrum/trace_over_d": trace_over_d,
+                "spectrum/ratio_top_r_to_trace_d": top_r_mean / (trace_over_d + 1e-8),
+                "step": step,
+            })
 
     @torch.no_grad()
     def consolidate(
@@ -54,6 +91,8 @@ class NonlinearLoraModel(BaseTuner):
         inplace_disable_adapter: bool = False,
         update_frequency: int | None = None,
         zeroshift: bool | None = None,
+        global_step: int = 0,
+        accelerator = None,
     ):
         """
         Data-dependent consolidation: fit ΔW per wrapped layer using ridge regression on calibration inputs,
@@ -154,6 +193,11 @@ class NonlinearLoraModel(BaseTuner):
                     # xt, zt, uzt are handled via zx_dW if you've made that fix
                     if "zx_dW" in state:
                         dist.all_reduce(state["zx_dW"], op=dist.ReduceOp.SUM)
+
+            if accelerator is not None:
+                first_layer = next(iter(layer_states.keys()))
+                xxt = self.consolidation_stats[first_layer]["xxt"]
+                self.log_activation_spectrum(xxt, step=global_step, accelerator=accelerator)
 
             # solve + merge per layer
             for layer in layers:
