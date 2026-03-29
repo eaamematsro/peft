@@ -142,9 +142,11 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
         if "xxt" not in state:
             state["xxt"] = torch.zeros((d, d), device=dev, dtype=accum_dtype)
             state["xzt"] = torch.zeros((d, m), device=dev, dtype=accum_dtype)
+            state["count"] = 0
             
         state["xxt"].add_(xA.t() @ xA)
         state["xzt"].add_(xA.t() @ rA)
+        state["count"] += xA.size(0)
 
         z = self.inner_adapter_forward(x, adapter_name)  # [*, r]
         if z.dim() == 3:
@@ -172,12 +174,13 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
         # b = (U @ phi(x @ V).T - dW x).T = (phi(x @ V) @ U - dW.T x.T), this is the regression residual we want to minimize
         dev = state["zzt"].device
         accum_dtype = torch.float32
+        samples = state["count"]
         dW = dW.to(dev, dtype=accum_dtype)
         alpha = self.scaling[adapter_name]
-        zzt = state["zzt"]  # [r, r]
+        zzt = state["zzt"] / samples  # [r, r]
         zzt = zzt.to(dtype=accum_dtype)
 
-        zx_dW = state["zx_dW"]  # [r, d]
+        zx_dW = state["zx_dW"] / samples  # [r, d]
         zx_dW = zx_dW.to(dtype=accum_dtype)
         target = -1/alpha * zx_dW @ dW  # [r, d] @ [d, m] = [r, m]
 
@@ -206,16 +209,17 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
             dW = alpha * V.T @ U # [out, in]
             return dW
         else:
-            xxt = state["xxt"]  # [d, d]
-            xzt = state["xzt"]  # [d, out]
-
+            samples = state["count"]
+            xxt = state["xxt"] / samples  # [d, d]
+            xzt = state["xzt"] / samples  # [d, out]
+            rank = self.r[adapter_name]
             d = xxt.size(0)
 
             I = torch.eye(d, device=xxt.device, dtype=xxt.dtype)
 
             if scale_lambda_by_trace:
                 # your stabilization heuristic, but now correctly applied
-                lam = lambda_ * (torch.trace(xxt) / d).clamp_min(1e-6)
+                lam = lambda_ * (torch.trace(xxt) * d * rank / samples).clamp_min(1e-6)
             else:
                 lam = lambda_
 
