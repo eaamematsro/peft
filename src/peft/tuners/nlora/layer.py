@@ -172,6 +172,11 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
         Returns U of shape [r, out] which can be merged into base weights as base_w += (V @ U).T
         """
         # b = (U @ phi(x @ V).T - dW x).T = (phi(x @ V) @ U - dW.T x.T), this is the regression residual we want to minimize
+        if self.is_linear.get(adapter_name, False):
+            U = self.nlora_U[adapter_name].weight.data  # [out, r]
+            dU = -U
+            return dU
+        
         dev = state["zzt"].device
         accum_dtype = torch.float32
         samples = state["count"]
@@ -203,10 +208,10 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
         Returns dW of shape [r, out] which can be merged into base weights as base_w += (V @ dW).T
         """
         if self.is_linear.get(adapter_name, False):
-            U = self.nlora_U[adapter_name].weight.data  # [r, out]
-            V = self.nlora_V[adapter_name].weight.data  # [in, r]
+            U = self.nlora_U[adapter_name].weight.data  # [out, r]
+            V = self.nlora_V[adapter_name].weight.data  # [r, in]
             alpha = self.scaling[adapter_name]
-            dW = alpha * V.T @ U # [out, in]
+            dW = alpha * (V.T @ U.T)  # [out, in]
             return dW
         else:
             samples = state["count"]

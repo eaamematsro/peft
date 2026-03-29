@@ -195,8 +195,9 @@ class NonlinearLoraModel(BaseTuner):
 
             if accelerator is not None:
                 first_layer = next(iter(layer_states.keys()))
-                xxt = layer_states[first_layer]["xxt"]
-                self.log_activation_spectrum(xxt, step=global_step, accelerator=accelerator)
+                if not first_layer.is_linear.get(adapter_name, False):
+                    xxt = layer_states[first_layer]["xxt"]
+                    self.log_activation_spectrum(xxt, step=global_step, accelerator=accelerator)
 
             for layer in layers:
                 layer.solve_and_merge(
