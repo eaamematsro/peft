@@ -176,7 +176,6 @@ class NonlinearLoraModel(BaseTuner):
                     with ctx:
                        _ = self.model(**batch)
                 else:
-                    # if your dataloader yields (input_ids, attention_mask, labels) tuples etc.
                     with ctx:
                        _ = self.model(**batch)
 
@@ -186,17 +185,17 @@ class NonlinearLoraModel(BaseTuner):
             if dist.is_available() and dist.is_initialized():
                 for layer in layers:
                     state = layer_states[layer]
-                    dist.all_reduce(state["xxt"], op=dist.ReduceOp.SUM)
-                    dist.all_reduce(state["xzt"], op=dist.ReduceOp.SUM)
-                    dist.all_reduce(state["zzt"], op=dist.ReduceOp.SUM)
-                    # zeroshift stats - sum the gram matrix
-                    # xt, zt, uzt are handled via zx_dW if you've made that fix
-                    if "zx_dW" in state:
-                        dist.all_reduce(state["zx_dW"], op=dist.ReduceOp.SUM)
+                    if layer.is_linear.get(adapter_name, False):
+                        dist.all_reduce(state["xxt"], op=dist.ReduceOp.SUM)
+                        dist.all_reduce(state["xzt"], op=dist.ReduceOp.SUM)
+                        dist.all_reduce(state["zzt"], op=dist.ReduceOp.SUM)
+                        # zeroshift stats - sum the gram matrix
+                        if "zx_dW" in state:
+                            dist.all_reduce(state["zx_dW"], op=dist.ReduceOp.SUM)
 
             if accelerator is not None:
                 first_layer = next(iter(layer_states.keys()))
-                xxt = self.consolidation_stats[first_layer]["xxt"]
+                xxt = layer_states[first_layer]["xxt"]
                 self.log_activation_spectrum(xxt, step=global_step, accelerator=accelerator)
 
             # solve + merge per layer
