@@ -185,6 +185,7 @@ class NonlinearLoraModel(BaseTuner):
             if dist.is_available() and dist.is_initialized():
                 for layer in layers:
                     state = layer_states[layer]
+<<<<<<< Updated upstream
                     if layer.is_linear.get(adapter_name, False):
                         dist.all_reduce(state["xxt"], op=dist.ReduceOp.SUM)
                         dist.all_reduce(state["xzt"], op=dist.ReduceOp.SUM)
@@ -197,8 +198,15 @@ class NonlinearLoraModel(BaseTuner):
                 first_layer = next(iter(layer_states.keys()))
                 xxt = layer_states[first_layer]["xxt"]
                 self.log_activation_spectrum(xxt, step=global_step, accelerator=accelerator)
+=======
+                    dist.all_reduce(state["xxt"], op=dist.ReduceOp.SUM)
+                    dist.all_reduce(state["xzt"], op=dist.ReduceOp.SUM)
+                    dist.all_reduce(state["zzt"], op=dist.ReduceOp.SUM)
+                    # zeroshift stats - sum the gram matrix
+                    if "zx_dW" in state:
+                        dist.all_reduce(state["zx_dW"], op=dist.ReduceOp.SUM)
+>>>>>>> Stashed changes
 
-            # solve + merge per layer
             for layer in layers:
                 layer.solve_and_merge(
                     state=layer_states[layer],
