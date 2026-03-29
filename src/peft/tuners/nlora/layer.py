@@ -49,6 +49,7 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
         self.nlora_V = nn.ModuleDict()
         self.nlora_U = nn.ModuleDict()
         self.phi = nn.ModuleDict()
+        self.is_linear = {}
 
         self._disable_adapters = False
         self.merged_adapters = []
@@ -62,6 +63,7 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
         self.nlora_U[adapter_name] = nn.Linear(r, self.out_features, bias=False)
         self.nlora_dropout[adapter_name] = nn.Dropout(dropout)
         self.phi[adapter_name] = make_phi(activation_fn)
+        self.is_linear[adapter_name] = activation_fn.lower() == "linear"
 
         # init: V random, U zeros => starts as base model
         nn.init.kaiming_uniform_(self.nlora_V[adapter_name].weight, a=math.sqrt(5))
@@ -114,6 +116,10 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
         :param state: Description
         :type state: dict
         """
+
+        if self.is_linear.get(adapter_name, False):
+            return # skip stats accumulation for linear adapters since it's not needed for solving optimal U given V
+        
         if x.dim() == 3:
             x2 = x.reshape(-1, x.size(-1))
         else:
@@ -187,30 +193,37 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
 
 
     @torch.no_grad()
-    def solve_dW(self, state: dict, lambda_: float, scale_lambda_by_trace=True):
+    def solve_dW(self, state: dict, lambda_: float, scale_lambda_by_trace=True, adapter_name: str = None):
         """
         Solve for optimal U given V and the accumulated stats.
         This is equivalent to solving a ridge regression problem with Tikhonov regularization of strength lambda_.
         Returns dW of shape [r, out] which can be merged into base weights as base_w += (V @ dW).T
         """
-        xxt = state["xxt"]  # [d, d]
-        xzt = state["xzt"]  # [d, out]
-
-        d = xxt.size(0)
-
-        I = torch.eye(d, device=xxt.device, dtype=xxt.dtype)
-
-        if scale_lambda_by_trace:
-            # your stabilization heuristic, but now correctly applied
-            lam = lambda_ * (torch.trace(xxt) / d).clamp_min(1e-6)
+        if self.is_linear.get(adapter_name, False):
+            U = self.nlora_U[adapter_name].weight.data  # [r, out]
+            V = self.nlora_V[adapter_name].weight.data  # [in, r]
+            alpha = self.scaling[adapter_name]
+            dW = alpha * V.T @ U # [out, in]
+            return dW
         else:
-            lam = lambda_
+            xxt = state["xxt"]  # [d, d]
+            xzt = state["xzt"]  # [d, out]
 
-        A = xxt + lam * I  # add scaled identity for numerical stability (and to prevent overfitting when data is limited)
+            d = xxt.size(0)
 
-        dW = torch.linalg.solve(A, xzt)  # [d, out]
+            I = torch.eye(d, device=xxt.device, dtype=xxt.dtype)
 
-        return dW
+            if scale_lambda_by_trace:
+                # your stabilization heuristic, but now correctly applied
+                lam = lambda_ * (torch.trace(xxt) / d).clamp_min(1e-6)
+            else:
+                lam = lambda_
+
+            A = xxt + lam * I  # add scaled identity for numerical stability (and to prevent overfitting when data is limited)
+
+            dW = torch.linalg.solve(A, xzt)  # [d, out]
+
+            return dW
 
     @torch.no_grad()
     def solve_and_merge(self, state: dict, lr_: float, lambda_w: float, scale_by_lambda_: bool,
@@ -219,7 +232,7 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
         Solve for optimal U given V and the accumulated stats, then merge into base layer.
         This is equivalent to solving a ridge regression problem with Tikhonov regularization of strength lambda_.
         """
-        dW = self.solve_dW(state, lambda_=lambda_w, scale_lambda_by_trace=scale_by_lambda_)  # [d, out]
+        dW = self.solve_dW(state, lambda_=lambda_w, scale_lambda_by_trace=scale_by_lambda_, adapter_name=adapter_name)  # [d, out]
 
         base_w = self.base_layer.weight.data  # [out, in]
 
