@@ -56,8 +56,8 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
 
     def update_layer(self, adapter_name: str, r: int, alpha: int, dropout: float, activation_fn: str):
         self.r[adapter_name] = r
-        self.nlora_alpha[adapter_name] = 1 # alpha
-        self.scaling[adapter_name] = 1 #alpha / max(1, r)
+        self.nlora_alpha[adapter_name] = alpha
+        self.scaling[adapter_name] = alpha / max(1, r)
 
         self.nlora_V[adapter_name] = nn.Linear(self.in_features, r, bias=False)
         self.nlora_U[adapter_name] = nn.Linear(r, self.out_features, bias=False)
@@ -69,7 +69,7 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
         # Initialize adapter weights so to have unit variance
         nn.init.normal_(self.nlora_V[adapter_name].weight, std=r**(-1/2))
         nn.init_zeros_(self.nlora_U[adapter_name].weight)
-        
+
         self.set_adapter(adapter_name)
 
     def forward(self, x):
