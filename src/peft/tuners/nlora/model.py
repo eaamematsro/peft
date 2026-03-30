@@ -185,7 +185,7 @@ class NonlinearLoraModel(BaseTuner):
             if dist.is_available() and dist.is_initialized():
                 for layer in layers:
                     state = layer_states[layer]
-                    if layer.is_linear.get(adapter_name, False):
+                    if not layer.is_linear.get(adapter_name, False):
                         dist.all_reduce(state["xxt"], op=dist.ReduceOp.SUM)
                         dist.all_reduce(state["xzt"], op=dist.ReduceOp.SUM)
                         dist.all_reduce(state["zzt"], op=dist.ReduceOp.SUM)
