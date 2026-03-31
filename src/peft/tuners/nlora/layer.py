@@ -68,7 +68,7 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
 
         # Initialize adapter weights so to have unit variance
         nn.init.normal_(self.nlora_V[adapter_name].weight, std=r**(-1/2))
-        nn.init_zeros_(self.nlora_U[adapter_name].weight)
+        nn.init.zeros_(self.nlora_U[adapter_name].weight)
 
         self.set_adapter(adapter_name)
 
