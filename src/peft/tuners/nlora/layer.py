@@ -219,12 +219,13 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
             xxt = state["xxt"] / samples  # [d, d]
             xzt = state["xzt"] / samples  # [d, out]
             d = xxt.size(0)
+            rank = self.r[adapter_name]
 
             I = torch.eye(d, device=xxt.device, dtype=xxt.dtype)
 
             if scale_lambda_by_trace:
                 # your stabilization heuristic, but now correctly applied
-                lam = lambda_ * (torch.trace(xxt) / d).clamp_min(1e-6)
+                lam = lambda_ * (torch.trace(xxt) * d * rank / samples).clamp_min(1e-6)
             else:
                 lam = lambda_
 
