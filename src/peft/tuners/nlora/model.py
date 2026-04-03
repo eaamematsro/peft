@@ -2,7 +2,6 @@
 import torch
 import torch.nn as nn
 import torch.distributed as dist
-from torch.amp import autocast
 from contextlib import nullcontext
 from peft.tuners.tuners_utils import BaseTuner
 import wandb
@@ -87,10 +86,11 @@ class NonlinearLoraModel(BaseTuner):
         offload_cpu: bool | None = None,
         accum_dtype: torch.dtype | None = None,
         scale_lambda_by_trace: bool | None = None,
-        max_batches: int | None = 1,
+        max_batches: int | None = None,
         inplace_disable_adapter: bool = False,
         update_frequency: int | None = None,
         zeroshift: bool | None = None,
+        lambda_schedule: str | None = None,
         global_step: int = 0,
         accelerator = None,
     ):
@@ -100,6 +100,7 @@ class NonlinearLoraModel(BaseTuner):
 
         Call: peft_model.base_model.consolidate(calib_loader)
         """
+
         # TODO: support multiple adapters at once (currently requires separate calls or manual looping)
         if adapter_name is None:
             adapter_name = self._get_single_active_adapter()
@@ -126,6 +127,11 @@ class NonlinearLoraModel(BaseTuner):
         
         if zeroshift is None:
             zeroshift = getattr(cfg, "consolidate_zero_shift", False)
+        
+        if lambda_schedule is None:
+            lambda_schedule = getattr(cfg, "consolidate_lambda_schedule", None)
+        
+        shift_V = getattr(cfg, "consolidate_shift_V", False)
 
         assert lr is not None, "LR must be specified for consolidation, either via argument or config"
 
@@ -167,7 +173,6 @@ class NonlinearLoraModel(BaseTuner):
                 ctx = torch.autocast(device_type='mps', dtype=torch.bfloat16)
             else:
                 ctx = nullcontext()
-
             for i, batch in enumerate(dataloader):
                 if max_batches is not None and i >= max_batches:
                     break
@@ -181,7 +186,7 @@ class NonlinearLoraModel(BaseTuner):
 
             for h in hooks:
                 h.remove()
-
+            
             if dist.is_available() and dist.is_initialized():
                 for layer in layers:
                     state = layer_states[layer]
@@ -189,15 +194,21 @@ class NonlinearLoraModel(BaseTuner):
                         dist.all_reduce(state["xxt"], op=dist.ReduceOp.SUM)
                         dist.all_reduce(state["xzt"], op=dist.ReduceOp.SUM)
                         dist.all_reduce(state["zzt"], op=dist.ReduceOp.SUM)
-                        # zeroshift stats - sum the gram matrix
-                        if "zx_dW" in state:
-                            dist.all_reduce(state["zx_dW"], op=dist.ReduceOp.SUM)
+                        dist.all_reduce(state["zx_dW"], op=dist.ReduceOp.SUM)
+                        dist.all_reduce(state["count"], op=dist.ReduceOp.SUM)
+                        dist.all_reduce(state["batch_count"], op=dist.ReduceOp.SUM)
+                        print(f"Layer {layer} | count: {state['count']} | batch_count: {state['batch_count']}")                        
 
-            if accelerator is not None:
-                first_layer = next(iter(layer_states.keys()))
-                if not first_layer.is_linear.get(adapter_name, False):
-                    xxt = layer_states[first_layer]["xxt"]
-                    self.log_activation_spectrum(xxt, step=global_step, accelerator=accelerator)
+            # if accelerator is not None:
+            #     first_layer = next(iter(layer_states.keys()))
+            #     if not first_layer.is_linear.get(adapter_name, False):
+            #         xxt = layer_states[first_layer]["xxt"]
+            #         self.log_activation_spectrum(xxt, step=global_step, accelerator=accelerator)
+            test_batch = next(iter(dataloader))
+
+            with torch.no_grad():
+                out_before = self.model(**test_batch)
+                loss_before = out_before.loss.item()
 
             for layer in layers:
                 layer.solve_and_merge(
@@ -208,7 +219,27 @@ class NonlinearLoraModel(BaseTuner):
                     adapter_name=adapter_name,
                     inplace_disable_adapter=inplace_disable_adapter,
                     zeroshift=zeroshift,
+                    lambda_schedule=lambda_schedule,
+                    shift_V=shift_V,
                 )
+
+                # # add noise to V to encourage subspace exploration
+                # if V_noise_scale > 0:
+                #     for adapter_name_key, V in layer.nlora_V.items():
+                #         if adapter_name_key == adapter_name:
+                #             V_norm = V.weight.data.norm()
+                #             noise = torch.randn_like(V.weight.data)
+
+                #             V_new = (1 - V_noise_scale) * V.weight.data + V_noise_scale * noise
+                #             V.weight.data.copy_(V_new * V_norm / (V_new.norm() + 1e-8))
+
+            with torch.no_grad():
+                out_after = self.model(**test_batch)
+                loss_after = out_after.loss.item()
+
+            # print(f"Loss before merge: {loss_before:.6f}")
+            # print(f"Loss after merge:  {loss_after:.6f}")
+            # print(f"Difference:        {loss_after - loss_before:.6f}")
 
             self.consolidation_updates += 1
 

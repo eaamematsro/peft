@@ -20,6 +20,8 @@ class NonlinearLoraConfig(PeftConfig):
     consolidate_batches: int | None = field(default=1) # number of batches to use for consolidation (None = all)
     consolidate_layer_update_frequency: int | None = field(default=None) # frequency (in number of batches) to update consolidation stats per layer (None = every layer)
     consolidate_zero_shift: bool = field(default=False) # whether to perform zero-shift consolidation (i.e. directly fit adapter outputs instead of deltas, which can be more stable but less efficient and may require more careful tuning of lambda)
+    consolidate_lambda_schedule: str | None = field(default=None) # optional schedule for lambda, e.g. "linear(1e-2, 1e-4, 1000)" to linearly decay from 1e-2 to 1e-4 over 1000 steps
+    consolidate_shift_V: bool = field(default=False) # whether to perform V-shift consolidation (i.e. directly fit adapter outputs instead of deltas, which can be more stable but less efficient and may require more careful tuning of lambda)
 
     def __post_init__(self):
         # IMPORTANT: requires PeftType entry exists in your PEFT install
