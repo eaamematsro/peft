@@ -237,9 +237,9 @@ class NonlinearLoraModel(BaseTuner):
                 out_after = self.model(**test_batch)
                 loss_after = out_after.loss.item()
 
-            # print(f"Loss before merge: {loss_before:.6f}")
-            # print(f"Loss after merge:  {loss_after:.6f}")
-            # print(f"Difference:        {loss_after - loss_before:.6f}")
+            print(f"Loss before merge: {loss_before:.6f}")
+            print(f"Loss after merge:  {loss_after:.6f}")
+            print(f"Difference:        {loss_after - loss_before:.6f}")
 
             self.consolidation_updates += 1
 
