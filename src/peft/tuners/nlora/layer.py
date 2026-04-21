@@ -351,7 +351,7 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
         # ── target: residual the new adapter must reproduce ──────────────
         # x V'^T U'^T * scaling = x(V^T U^T * scaling - dW * lr)
         # so V'^T U'^T = (V^T U^T * scaling - dW * lr) / scaling
-        target = (V.T @ U.T * scaling - dW * lr) / scaling   # [in, out]
+        target = (V.T @ U.T * scaling - dW.to(V.dtype) * lr) / scaling   # [in, out]
 
         # ── construct V' in orthogonal complement of V's row space ───────
         # QR on V^T gives orthonormal basis for col(V^T) = row space of V

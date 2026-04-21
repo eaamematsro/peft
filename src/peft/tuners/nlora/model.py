@@ -204,11 +204,13 @@ class NonlinearLoraModel(BaseTuner):
             #     if not first_layer.is_linear.get(adapter_name, False):
             #         xxt = layer_states[first_layer]["xxt"]
             #         self.log_activation_spectrum(xxt, step=global_step, accelerator=accelerator)
+
             test_batch = next(iter(dataloader))
 
             with torch.no_grad():
-                out_before = self.model(**test_batch)
-                loss_before = out_before.loss.item()
+                with ctx:
+                    out_before = self.model(**test_batch)
+                    loss_before = out_before.loss.item()
 
             for layer in layers:
                 layer.solve_and_merge(
@@ -234,8 +236,9 @@ class NonlinearLoraModel(BaseTuner):
                 #             V.weight.data.copy_(V_new * V_norm / (V_new.norm() + 1e-8))
 
             with torch.no_grad():
-                out_after = self.model(**test_batch)
-                loss_after = out_after.loss.item()
+                with ctx:
+                    out_after = self.model(**test_batch)
+                    loss_after = out_after.loss.item()
 
             print(f"Loss before merge: {loss_before:.6f}")
             print(f"Loss after merge:  {loss_after:.6f}")
