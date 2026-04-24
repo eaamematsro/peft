@@ -45,7 +45,7 @@ from transformers import (
 from transformers.utils import send_example_telemetry
 from transformers.utils.versions import require_version
 
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.

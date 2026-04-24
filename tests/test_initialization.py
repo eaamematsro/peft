@@ -33,7 +33,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from peft import (
+from src.peft.src.peft import (
     AdaLoraConfig,
     C3AConfig,
     DeloraConfig,
@@ -64,13 +64,13 @@ from peft import (
     inject_adapter_in_model,
     set_peft_model_state_dict,
 )
-from peft.mapping import PEFT_TYPE_TO_PREFIX_MAPPING
-from peft.tuners.lora.config import CordaConfig
-from peft.tuners.lora.corda import preprocess_corda
-from peft.tuners.lora.layer import LoraLayer
-from peft.utils import infer_device
-from peft.utils.hotswap import hotswap_adapter, prepare_model_for_compiled_hotswap
-from peft.utils.other import ModulesToSaveWrapper
+from src.peft.src.peft.mapping import PEFT_TYPE_TO_PREFIX_MAPPING
+from src.peft.src.peft.tuners.lora.config import CordaConfig
+from src.peft.src.peft.tuners.lora.corda import preprocess_corda
+from src.peft.src.peft.tuners.lora.layer import LoraLayer
+from src.peft.src.peft.utils import infer_device
+from src.peft.src.peft.utils.hotswap import hotswap_adapter, prepare_model_for_compiled_hotswap
+from src.peft.src.peft.utils.other import ModulesToSaveWrapper
 
 from .testing_utils import hub_online_once, load_dataset_english_quotes, require_deterministic_for_xpu
 
@@ -4262,15 +4262,15 @@ def test_import_peft_type_to_model_mapping_deprecation_warning(recwarn):
     # TODO: Remove after 2026-01
 
     # first check that there is no warning under normal circumstances
-    from peft.peft_model import PeftModel  # noqa
+    from src.peft.src.peft.peft_model import PeftModel  # noqa
 
     expected = (
-        "PEFT_TYPE_TO_MODEL_MAPPING is deprecated, please use `from peft import PEFT_TYPE_TO_TUNER_MAPPING` instead"
+        "PEFT_TYPE_TO_MODEL_MAPPING is deprecated, please use `from src.peft.src.peft import PEFT_TYPE_TO_TUNER_MAPPING` instead"
     )
     warnings = (w.message.args[0] for w in recwarn.list)
     assert not any(w.startswith(expected) for w in warnings)
 
-    from peft.peft_model import PEFT_TYPE_TO_MODEL_MAPPING  # noqa
+    from src.peft.src.peft.peft_model import PEFT_TYPE_TO_MODEL_MAPPING  # noqa
 
     # check that there is a warning with this message after importing the variable
     warnings = (w.message.args[0] for w in recwarn.list)

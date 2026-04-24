@@ -19,7 +19,7 @@ import torch
 from transformers import AutoModelForCausalLM
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
-from peft import (
+from src.peft.src.peft import (
     CartridgeConfig,
     PeftConfig,
     PeftModel,
@@ -29,7 +29,7 @@ from peft import (
     load_peft_weights,
     prompt_embeddings_from_past_key_values,
 )
-from peft.tuners import PrefixTuningConfig
+from src.peft.src.peft.tuners import PrefixTuningConfig
 
 from .testing_utils import hub_online_once
 

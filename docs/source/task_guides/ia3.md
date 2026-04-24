@@ -126,7 +126,7 @@ All PEFT methods need a configuration that contains and specifies all the parame
 Once the configuration is setup, pass it to the [`get_peft_model`] function along with the base model to create a trainable [`PeftModel`].
 
 ```py
-from peft import IA3Config, get_peft_model
+from src.peft.src.peft import IA3Config, get_peft_model
 
 peft_config = IA3Config(task_type="SEQ_2_SEQ_LM")
 model = get_peft_model(model, peft_config)
@@ -211,7 +211,7 @@ model.push_to_hub(peft_model_id)
 To load the model for inference, use the [`~AutoPeftModelForSeq2SeqLM.from_pretrained`] method. Let's also load a sentence of financial news from the dataset to generate a sentiment for.
 
 ```py
-from peft import AutoPeftModelForSeq2SeqLM
+from src.peft.src.peft import AutoPeftModelForSeq2SeqLM
 
 device = torch.accelerator.current_accelerator().type if hasattr(torch, "accelerator") else "cuda"
 

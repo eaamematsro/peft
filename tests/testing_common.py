@@ -30,7 +30,7 @@ from diffusers import StableDiffusionPipeline
 from packaging import version
 from safetensors.torch import save_file
 
-from peft import (
+from src.peft.src.peft import (
     AdaLoraConfig,
     BOFTConfig,
     CPTConfig,
@@ -56,10 +56,10 @@ from peft import (
     prepare_model_for_kbit_training,
     set_peft_model_state_dict,
 )
-from peft.tuners._buffer_dict import BufferDict
-from peft.tuners.lora import LoraLayer
-from peft.tuners.tuners_utils import BaseTunerLayer
-from peft.utils import (
+from src.peft.src.peft.tuners._buffer_dict import BufferDict
+from src.peft.src.peft.tuners.lora import LoraLayer
+from src.peft.src.peft.tuners.tuners_utils import BaseTunerLayer
+from src.peft.src.peft.utils import (
     AuxiliaryTrainingWrapper,
     ModulesToSaveWrapper,
     TrainableTokensWrapper,
@@ -1724,7 +1724,7 @@ class PeftCommonTester:
             input = self.prepare_inputs_for_testing()
             output_before = get_output(model)
 
-            # output from PEFT MODEL
+            # output from src.peft.src.peft MODEL
             if hasattr(self, "instantiate_sd_peft"):
                 # SD models are instantiated differently
                 peft_model = self.instantiate_sd_peft(model_id, config_cls, config_kwargs)

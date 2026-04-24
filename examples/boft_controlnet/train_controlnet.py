@@ -50,8 +50,8 @@ from utils.light_controlnet import ControlNetModel
 from utils.tracemalloc import TorchTracemalloc, b2mb
 from utils.unet_2d_condition import UNet2DConditionNewModel
 
-from peft import BOFTConfig, get_peft_model
-from peft.peft_model import PeftModel
+from src.peft.src.peft import BOFTConfig, get_peft_model
+from src.peft.src.peft.peft_model import PeftModel
 
 
 # Will error if the minimal version of diffusers is not installed. Remove at your own risks.

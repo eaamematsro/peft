@@ -61,7 +61,7 @@ trainer.train()
 Alternatively, you can use the [`~utils.cast_mixed_precision_params`] function to correctly cast the weights:
 
 ```python
-from peft import cast_mixed_precision_params
+from src.peft.src.peft import cast_mixed_precision_params
 
 peft_model = get_peft_model(...)
 cast_mixed_precision_params(peft_model, dtype=torch.float16)
@@ -72,7 +72,7 @@ trainer.train()
 ```
 
 > [!TIP]
-> Starting from PEFT version v0.12.0, PEFT automatically promotes the dtype of adapter weights from `torch.float16` and `torch.bfloat16` to `torch.float32` where appropriate. To _prevent_ this behavior, you can pass `autocast_adapter_dtype=False` to [`~get_peft_model`], to [`~PeftModel.from_pretrained`], and to [`~PeftModel.load_adapter`].
+> Starting from src.peft.src.peft version v0.12.0, PEFT automatically promotes the dtype of adapter weights from `torch.float16` and `torch.bfloat16` to `torch.float32` where appropriate. To _prevent_ this behavior, you can pass `autocast_adapter_dtype=False` to [`~get_peft_model`], to [`~PeftModel.from_pretrained`], and to [`~PeftModel.load_adapter`].
 
 ### Selecting the dtype of the adapter
 
@@ -110,7 +110,7 @@ If your model outputs are not exactly the same as previous runs, there could be 
 Please ensure that you load the model correctly. A common error is trying to load a _trained_ model with [`get_peft_model`] which is incorrect. Instead, the loading code should look like this:
 
 ```python
-from peft import PeftModel, PeftConfig
+from src.peft.src.peft import PeftModel, PeftConfig
 
 base_model = ...  # to load the base model, use the same code as when you trained it
 config = PeftConfig.from_pretrained(peft_model_id)
@@ -208,7 +208,7 @@ Although this looks scary, it is most likely nothing to worry about. This warnin
 When you get this warning _before_ training the model, PEFT automatically takes care of making the classification head trainable if you correctly passed the `task_type` argument to the PEFT config.
 
 ```python
-from peft import LoraConfig, TaskType
+from src.peft.src.peft import LoraConfig, TaskType
 
 lora_config = LoraConfig(..., task_type=TaskType.SEQ_CLS)
 ```
@@ -233,7 +233,7 @@ The [`~peft.PeftModel.get_layer_status`] method gives you a detailed overview of
 
 ```python
 >>> from transformers import AutoModel
->>> from peft import get_peft_model, LoraConfig
+>>> from src.peft.src.peft import get_peft_model, LoraConfig
 
 >>> model_id = "google/flan-t5-small"
 >>> model = AutoModel.from_pretrained(model_id)
@@ -290,7 +290,7 @@ It is possible to get this information for non-PEFT models if they are using PEF
 ```python
 >>> import torch
 >>> from diffusers import StableDiffusionPipeline
->>> from peft import get_model_status, get_layer_status
+>>> from src.peft.src.peft import get_model_status, get_layer_status
 
 >>> path = "runwayml/stable-diffusion-v1-5"
 >>> lora_id = "takuma104/lora-test-text-encoder-lora-target"
@@ -353,7 +353,7 @@ Depending on your use case, this may not be a big deal. If, however, you need yo
 
 ```python
 from transformers import AutoModelForImageClassification
-from peft import LoraConfig, get_peft_model
+from src.peft.src.peft import LoraConfig, get_peft_model
 
 model_id = "microsoft/resnet-18"
 base_model = AutoModelForImageClassification.from_pretrained(self.model_id)
@@ -403,7 +403,7 @@ Activating multiple adapters at the same time is generally possible on all PEFT 
 
 ```python
 from transformers import AutoModelForCausalLM
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 
 model_id = ...
 base_model = AutoModelForCausalLM.from_pretrained(model_id)
@@ -420,7 +420,7 @@ It is also possible to train two adapters at the same time, but you should be ca
 
 ```python
 from transformers import AutoModelForCausalLM
-from peft import LoraConfig, get_peft_model
+from src.peft.src.peft import LoraConfig, get_peft_model
 
 model_id = ...
 base_model = AutoModelForCausalLM.from_pretrained(model_id)

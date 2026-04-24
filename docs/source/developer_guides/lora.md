@@ -27,7 +27,7 @@ The initialization of LoRA weights is controlled by the parameter `init_lora_wei
 It is also possible to pass `init_lora_weights="gaussian"`. As the name suggests, this initializes weight A with a Gaussian distribution and zeros for weight B (this is how [Diffusers](https://huggingface.co/docs/diffusers/index) initializes LoRA weights).
 
 ```py
-from peft import LoraConfig
+from src.peft.src.peft import LoraConfig
 
 config = LoraConfig(init_lora_weights="gaussian", ...)
 ```
@@ -35,7 +35,7 @@ config = LoraConfig(init_lora_weights="gaussian", ...)
 There is also an option to set `init_lora_weights=False` which is useful for debugging and testing. This should be the only time you use this option. When choosing this option, the LoRA weights are initialized such that they do *not* result in an identity transform.
 
 ```py
-from peft import LoraConfig
+from src.peft.src.peft import LoraConfig
 
 config = LoraConfig(init_lora_weights=False, ...)
 ```
@@ -45,7 +45,7 @@ config = LoraConfig(init_lora_weights=False, ...)
 
 Configure the initialization method to "pissa", which may take several minutes to execute SVD on the pre-trained model:
 ```python
-from peft import LoraConfig
+from src.peft.src.peft import LoraConfig
 config = LoraConfig(init_lora_weights="pissa", ...)
 ```
 Alternatively, execute fast SVD, which takes only a few seconds. The number of iterations determines the trade-off between the error and computation time:
@@ -90,7 +90,7 @@ For detailed instruction on using CorDA, please follow [these instructions](http
 
 You just need to pass a single additional option to use OLoRA:
 ```python
-from peft import LoraConfig
+from src.peft.src.peft import LoraConfig
 config = LoraConfig(init_lora_weights="olora", ...)
 ```
 For more advanced usage, please refer to our [documentation](https://github.com/huggingface/peft/tree/main/examples/olora_finetuning).
@@ -100,7 +100,7 @@ For more advanced usage, please refer to our [documentation](https://github.com/
 
 You can use EVA by setting `init_lora_weights="eva"` and defining [`EvaConfig`] in [`LoraConfig`]:
 ```python
-from peft import LoraConfig, EvaConfig
+from src.peft.src.peft import LoraConfig, EvaConfig
 peft_config = LoraConfig(
     init_lora_weights = "eva",
     eva_config = EvaConfig(rho = 2.0),
@@ -135,7 +135,7 @@ In general, for LoftQ to work best, it is recommended to target as many layers w
 An easier but more limited way to apply LoftQ initialization is to use the convenience function `replace_lora_weights_loftq`. This takes the quantized PEFT model as input and replaces the LoRA weights in-place with their LoftQ-initialized counterparts.
 
 ```python
-from peft import replace_lora_weights_loftq
+from src.peft.src.peft import replace_lora_weights_loftq
 from transformers import BitsAndBytesConfig
 
 bnb_config = BitsAndBytesConfig(load_in_4bit=True, ...)
@@ -163,7 +163,7 @@ At the moment, `replace_lora_weights_loftq` has these additional limitations:
 Another way to initialize [`LoraConfig`] is with the [rank-stabilized LoRA (rsLoRA)](https://huggingface.co/papers/2312.03732) method. The LoRA architecture scales each adapter during every forward pass by a fixed scalar which is set at initialization and depends on the rank `r`. The scalar is given by `lora_alpha/r` in the original implementation, but rsLoRA uses `lora_alpha/math.sqrt(r)` which stabilizes the adapters and increases the performance potential from using a higher `r`.
 
 ```py
-from peft import LoraConfig
+from src.peft.src.peft import LoraConfig
 
 config = LoraConfig(use_rslora=True, ...)
 ```
@@ -178,7 +178,7 @@ This method requires an initialization function to estimate the gradients
 before beginning the actual training:
 
 ```python
-from peft.tuners.lora import preprocess_loraga
+from src.peft.src.peft.tuners.lora import preprocess_loraga
 
 def train_step():
     """Run forward and backward passes for gradient estimation."""
@@ -202,7 +202,7 @@ PEFT implements LoRA variants that improve upon the original LoRA.
 This technique decomposes the updates of the weights into two parts, magnitude and direction. Direction is handled by normal LoRA, whereas the magnitude is handled by a separate learnable parameter. This can improve the performance of LoRA, especially at low ranks. For more information on DoRA, see  https://huggingface.co/papers/2402.09353.
 
 ```py
-from peft import LoraConfig
+from src.peft.src.peft import LoraConfig
 
 config = LoraConfig(use_dora=True, ...)
 ```
@@ -210,7 +210,7 @@ config = LoraConfig(use_dora=True, ...)
 If parts of the model or the DoRA adapter are offloaded to CPU you can get a significant speedup at the cost of some temporary (ephemeral) VRAM overhead by using `ephemeral_gpu_offload=True` in `config.runtime_config`.
 
 ```py
-from peft import LoraConfig, LoraRuntimeConfig
+from src.peft.src.peft import LoraConfig, LoraRuntimeConfig
 
 config = LoraConfig(use_dora=True, runtime_config=LoraRuntimeConfig(ephemeral_gpu_offload=True), ...)
 ```
@@ -218,7 +218,7 @@ config = LoraConfig(use_dora=True, runtime_config=LoraRuntimeConfig(ephemeral_gp
 A `PeftModel` with a DoRA adapter can also be loaded with `ephemeral_gpu_offload=True` flag using the `from_pretrained` method as well as the `load_adapter` method.
 
 ```py
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 
 model = PeftModel.from_pretrained(base_model, peft_model_id, ephemeral_gpu_offload=True)
 ```
@@ -239,7 +239,7 @@ with `CUDA_VISIBLE_DEVICES=0 ZE_AFFINITY_MASK=0 time python examples/dora_finetu
 Moreover, it is possible to further increase runtime performance of DoRA by using the [`DoraCaching`] helper context. This requires the model to be in `eval` mode:
 
 ```py
-from peft.helpers import DoraCaching
+from src.peft.src.peft.helpers import DoraCaching
 
 model.eval()
 with DoraCaching():
@@ -381,7 +381,7 @@ In the snippet below we show how to add new tokens to the model and how to train
 
 ```py
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from peft import get_peft_model, LoraConfig
+from src.peft.src.peft import get_peft_model, LoraConfig
 
 base_model = AutoModelForCausalLM.from_pretrained("mistralai/Mistral-7B-v0.1")
 tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-v0.1")
@@ -424,8 +424,8 @@ LoRA training can optionally include special purpose optimizers. Currently PEFT 
 LoRA training can be more effective and efficient using LoRA-FA, as described in [LoRA-FA](https://huggingface.co/papers/2308.03303). LoRA-FA reduces activation memory consumption by fixing the matrix A and only tuning the matrix B. During training, the gradient of B is optimized to approximate the full parameter fine-tuning gradient. Moreover, the memory consumption of LoRA-FA is not sensitive to the rank (since it erases the activation of $A$), therefore it can improve performance by enlarging lora rank without increasing memory consumption.
 
 ```py
-from peft import LoraConfig, get_peft_model
-from peft.optimizers import create_lorafa_optimizer
+from src.peft.src.peft import LoraConfig, get_peft_model
+from src.peft.src.peft.optimizers import create_lorafa_optimizer
 from transformers import Trainer, get_cosine_schedule_with_warmup
 
 base_model = AutoModelForCausalLM.from_pretrained("meta-llama/Meta-Llama-3-8B-Instruct")
@@ -457,8 +457,8 @@ trainer = Trainer(
 LoRA training can be optimized using [LoRA+](https://huggingface.co/papers/2402.12354), which uses different learning rates for the adapter matrices A and B, shown to increase finetuning speed by up to 2x and performance by 1-2%.
 
 ```py
-from peft import LoraConfig, get_peft_model
-from peft.optimizers import create_loraplus_optimizer
+from src.peft.src.peft import LoraConfig, get_peft_model
+from src.peft.src.peft.optimizers import create_loraplus_optimizer
 from transformers import Trainer
 import bitsandbytes as bnb
 
@@ -501,7 +501,7 @@ We show in the snippets below how to run that using PEFT.
 
 ```py
 from transformers import AutoModelForCausalLM
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 
 base_model = AutoModelForCausalLM.from_pretrained("mistralai/Mistral-7B-v0.1")
 peft_model_id = "alignment-handbook/zephyr-7b-sft-lora"
@@ -513,7 +513,7 @@ It is important to assign the returned model to a variable and use it, [`~LoraMo
 
 ```py
 from transformers import AutoModelForCausalLM
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 
 base_model = AutoModelForCausalLM.from_pretrained("mistralai/Mistral-7B-v0.1")
 peft_model_id = "alignment-handbook/zephyr-7b-sft-lora"
@@ -530,7 +530,7 @@ First load the base model:
 
 ```python
 from transformers import AutoModelForCausalLM
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 import torch
 
 base_model = AutoModelForCausalLM.from_pretrained(
@@ -592,7 +592,7 @@ the existing adapter and now the active adapter.
 Example usage:
 
 ```python
-from peft.tuners.lora.intruders import reduce_intruder_dimension
+from src.peft.src.peft.tuners.lora.intruders import reduce_intruder_dimension
 
 peft_model = AutoPeftModelForCausalLM.from_pretrained('hubnemo/llama-3.2b-metamathqa-lora64')
 
@@ -620,7 +620,7 @@ Adapters can be loaded onto a pretrained model with [`~PeftModel.load_adapter`],
 
 ```py
 from transformers import AutoModelForCausalLM
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 
 base_model = AutoModelForCausalLM.from_pretrained("mistralai/Mistral-7B-v0.1")
 peft_model_id = "alignment-handbook/zephyr-7b-sft-lora"
@@ -654,7 +654,7 @@ Activated LoRA (aLoRA) is a low rank adapter architecture for causal LMs that re
 This technique scans for the last occurrence of an invocation sequence (`alora_invocation_tokens`) in each input (this can be as short as 1 token). It activates the adapter weights on tokens starting with the beginning of the invocation sequence. Any inputs after the invocation sequence are also adapted, and all generated tokens will use the adapted weights. Weights on prior tokens are left un-adapted, making the cache for those tokens interchangeable with base model cache due to the causal attention mask in causal LMs. Usage is very similar to standard LoRA. The key difference is that the invocation sequence must be specified when the adapter is created:
 
 ```py
-from peft import LoraConfig
+from src.peft.src.peft import LoraConfig
 
 config = LoraConfig(alora_invocation_tokens=alora_invocation_tokens, task_type="CAUSAL_LM", ...)
 ```
@@ -763,7 +763,7 @@ Thankfully, it is possible to mix different LoRA adapters in the same batch usin
 
 ```python
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 
 model_id = ...
 tokenizer = AutoTokenizer.from_pretrained(model_id)
@@ -829,7 +829,7 @@ Using this feature has some drawbacks, namely:
 In PEFT, Arrow is enabled through [`ArrowConfig]` and `create_arrow_model`. You can also configure parameters such as `top_k` (the number of LoRA adapters combined per token), `router_temperature` (the softmax temperature applied to the routing coefficients), and `rng_seed` (for reproducibility).
 
 ```py
-from peft import create_arrow_model, ArrowConfig
+from src.peft.src.peft import create_arrow_model, ArrowConfig
 from transformers import AutoModelForCausalLM
 
 # Loading the model
@@ -888,7 +888,7 @@ model.set_adapter('arrow_router')    # Model is ready to be used at inference ti
 In PEFT, enable GenKnowSub by setting ```use_gks=True``` in ArrowConfig, and providing ```general_adapter_paths``` in ```create_arrow_model```:
 
 ```py
-from peft import create_arrow_model, ArrowConfig
+from src.peft.src.peft import create_arrow_model, ArrowConfig
 from transformers import AutoModelForCausalLM
 
 # Loading the model

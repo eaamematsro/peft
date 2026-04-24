@@ -24,7 +24,7 @@ from diffusers import StableDiffusionPipeline
 from torch import nn
 from transformers import AutoModel, AutoModelForCausalLM, AutoModelForSeq2SeqLM, AutoModelForSequenceClassification
 
-from peft import (
+from src.peft.src.peft import (
     AdaLoraConfig,
     IA3Config,
     LoKrConfig,
@@ -35,8 +35,8 @@ from peft import (
     inject_adapter_in_model,
     set_peft_model_state_dict,
 )
-from peft.tuners import lora
-from peft.utils import ModulesToSaveWrapper
+from src.peft.src.peft.tuners import lora
+from src.peft.src.peft.utils import ModulesToSaveWrapper
 
 from .testing_utils import hub_online_once
 

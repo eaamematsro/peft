@@ -33,7 +33,7 @@ from transformers import (
     TrainingArguments,
 )
 
-from peft import LoraConfig, get_peft_model
+from src.peft.src.peft import LoraConfig, get_peft_model
 
 
 def print_if_process_zero(*args, **kwargs):

@@ -31,7 +31,7 @@ from torch import nn
 from transformers import AutoModelForCausalLM, AutoModelForSequenceClassification
 from transformers.pytorch_utils import Conv1D
 
-from peft import (
+from src.peft.src.peft import (
     AdaLoraConfig,
     BOFTConfig,
     BoneConfig,
@@ -60,10 +60,10 @@ from peft import (
     WaveFTConfig,
     get_peft_model,
 )
-from peft.tuners import lora
-from peft.tuners.lora.config import BdLoraConfig
-from peft.tuners.tuners_utils import BaseTunerLayer
-from peft.utils import AuxiliaryTrainingWrapper, infer_device
+from src.peft.src.peft.tuners import lora
+from src.peft.src.peft.tuners.lora.config import BdLoraConfig
+from src.peft.src.peft.tuners.tuners_utils import BaseTunerLayer
+from src.peft.src.peft.utils import AuxiliaryTrainingWrapper, infer_device
 
 from .testing_common import PeftCommonTester, _skip_if_merging_not_supported
 from .testing_utils import get_state_dict, require_non_cpu, set_init_weights_false
@@ -6163,7 +6163,7 @@ class TestDynamicDispatch:
 
     @pytest.fixture(scope="class")
     def custom_lora_cls(self):
-        from peft.tuners import lora
+        from src.peft.src.peft.tuners import lora
 
         class MyLora(lora.Linear):
             # just re-use the lora.Linear code here

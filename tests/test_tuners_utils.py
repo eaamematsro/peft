@@ -32,7 +32,7 @@ from transformers import (
 )
 from transformers.pytorch_utils import Conv1D
 
-from peft import (
+from src.peft.src.peft import (
     AdaptionPromptConfig,
     IA3Config,
     LoHaConfig,
@@ -44,19 +44,19 @@ from peft import (
     get_model_status,
     get_peft_model,
 )
-from peft.tuners.lora.layer import LoraLayer
-from peft.tuners.tuners_utils import (
+from src.peft.src.peft.tuners.lora.layer import LoraLayer
+from src.peft.src.peft.tuners.tuners_utils import (
     BaseTuner,
     BaseTunerLayer,
     _maybe_include_all_linear_layers,
     check_target_module_exists,
     inspect_matched_modules,
 )
-from peft.tuners.tuners_utils import (
+from src.peft.src.peft.tuners.tuners_utils import (
     _find_minimal_target_modules as find_minimal_target_modules,
 )
-from peft.utils import INCLUDE_LINEAR_LAYERS_SHORTHAND, ModulesToSaveWrapper, infer_device
-from peft.utils.constants import DUMMY_MODEL_CONFIG, MIN_TARGET_MODULES_FOR_OPTIMIZATION
+from src.peft.src.peft.utils import INCLUDE_LINEAR_LAYERS_SHORTHAND, ModulesToSaveWrapper, infer_device
+from src.peft.src.peft.utils.constants import DUMMY_MODEL_CONFIG, MIN_TARGET_MODULES_FOR_OPTIMIZATION
 
 from .testing_utils import hub_online_once, require_bitsandbytes, require_non_cpu
 

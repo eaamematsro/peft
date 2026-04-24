@@ -5,8 +5,8 @@ import pytest
 import torch
 from transformers import AutoModelForCausalLM
 
-from peft import LoraConfig, MissConfig, get_peft_model
-from peft.tuners.lora.intruders import reduce_intruder_dimension
+from src.peft.src.peft import LoraConfig, MissConfig, get_peft_model
+from src.peft.src.peft.tuners.lora.intruders import reduce_intruder_dimension
 
 from .testing_utils import hub_online_once
 

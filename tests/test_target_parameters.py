@@ -18,8 +18,8 @@ from torch import nn
 from transformers import AutoModelForCausalLM
 
 import peft
-from peft import LoraConfig, TaskType, get_peft_model
-from peft.tuners.lora.layer import ParamWrapper
+from src.peft.src.peft import LoraConfig, TaskType, get_peft_model
+from src.peft.src.peft.tuners.lora.layer import ParamWrapper
 
 from .testing_common import PeftCommonTester
 from .testing_utils import hub_online_once, set_init_weights_false
@@ -425,7 +425,7 @@ class TestTargetParameters:
                 weights.append(W)
                 return orig_forward(self, W)
 
-            from peft.tuners.lora.layer import _LoraParameterProxy
+            from src.peft.src.peft.tuners.lora.layer import _LoraParameterProxy
 
             orig_forward = _LoraParameterProxy.forward
             monkeypatch.setattr(_LoraParameterProxy, "forward", mock_forward)

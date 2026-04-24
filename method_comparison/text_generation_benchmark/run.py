@@ -40,7 +40,7 @@ from utils import (
 )
 
 import peft
-from peft import PeftConfig, get_peft_model
+from src.peft.src.peft import PeftConfig, get_peft_model
 
 
 def load_base_results(model_id: str) -> Optional[dict]:

@@ -28,7 +28,7 @@ from transformers import (
     LlavaForConditionalGeneration,
 )
 
-from peft import (
+from src.peft.src.peft import (
     BOFTConfig,
     HRAConfig,
     LoHaConfig,

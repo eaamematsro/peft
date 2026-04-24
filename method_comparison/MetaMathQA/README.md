@@ -52,7 +52,7 @@ to run the VBLoRA default experiment again.
 This must be a valid PEFT configuration. It is easiest to create it programmatically, e.g.:
 
 ```python
-from peft import LoraConfig
+from src.peft.src.peft import LoraConfig
 
 config = LoraConfig(...)
 config.save_pretrained(<path-to-experiment>)

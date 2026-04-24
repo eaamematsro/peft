@@ -20,7 +20,7 @@ import pytest
 import torch
 from diffusers import AutoModel, StableDiffusionPipeline
 
-from peft import (
+from src.peft.src.peft import (
     BOFTConfig,
     HRAConfig,
     LoHaConfig,
@@ -33,7 +33,7 @@ from peft import (
     inject_adapter_in_model,
     set_peft_model_state_dict,
 )
-from peft.tuners.tuners_utils import BaseTunerLayer
+from src.peft.src.peft.tuners.tuners_utils import BaseTunerLayer
 
 from .testing_common import PeftCommonTester
 from .testing_utils import hub_online_once, set_init_weights_false, temp_seed

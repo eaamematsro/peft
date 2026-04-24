@@ -17,7 +17,7 @@ Normally, it isn't possible to mix different adapter types in 🤗 PEFT. You can
 To load different adapter types into a PEFT model, use [`PeftMixedModel`] instead of [`PeftModel`]:
 
 ```py
-from peft import PeftMixedModel
+from src.peft.src.peft import PeftMixedModel
 
 base_model = ...  # load the base model, e.g. from transformers
 # load first adapter, which will be called "default"

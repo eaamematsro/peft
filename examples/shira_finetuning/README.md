@@ -6,7 +6,7 @@ Sparse High Rank Adapters or [SHiRA](https://huggingface.co/papers/2406.13175) i
 ## Quick start
 ```python
 import torch
-from peft import ShiraConfig, get_peft_model
+from src.peft.src.peft import ShiraConfig, get_peft_model
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import SFTConfig, SFTTrainer
 from datasets import load_dataset
@@ -50,7 +50,7 @@ python3 examples/shira_finetuning/shira_finetuning.py --base_model facebook/opt-
 ## Use the model
 You can load and use the model as any other 🤗 PEFT model
 ```python
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 from transformers import AutoTokenizer, AutoModelForCausalLM
 model = AutoModelForCausalLM.from_pretrained("facebook/opt-350m")
 tokenizer = AutoTokenizer.from_pretrained("facebook/opt-350m")

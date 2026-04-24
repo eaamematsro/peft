@@ -15,7 +15,7 @@
 import torch
 from torch import nn
 
-from peft.utils.integrations import init_empty_weights, skip_init_on_device
+from src.peft.src.peft.utils.integrations import init_empty_weights, skip_init_on_device
 
 
 class MLP(nn.Module):

@@ -31,7 +31,7 @@ in that case the learned parameters are the KV prefix itself.
 ```py
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from peft import PrefixTuningConfig, get_peft_model, initialize_kv_prefix_from_text
+from src.peft.src.peft import PrefixTuningConfig, get_peft_model, initialize_kv_prefix_from_text
 
 base = AutoModelForCausalLM.from_pretrained("gpt2")
 tok = AutoTokenizer.from_pretrained("gpt2")

@@ -21,7 +21,7 @@ import torch
 from torch import nn
 from transformers import AutoModelForCausalLM
 
-from peft import (
+from src.peft.src.peft import (
     C3AConfig,
     IA3Config,
     LoKrConfig,
@@ -34,7 +34,7 @@ from peft import (
     save_as_lora,
     set_peft_model_state_dict,
 )
-from peft.utils import infer_device
+from src.peft.src.peft.utils import infer_device
 
 from .testing_utils import hub_online_once
 

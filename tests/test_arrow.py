@@ -21,9 +21,9 @@ import pytest
 import torch
 from transformers import AutoModelForCausalLM, AutoModelForImageClassification
 
-from peft import LoraConfig, get_peft_model
-from peft.tuners.lora import ArrowConfig, create_arrow_model
-from peft.tuners.lora.arrow import _resolve_adapter_source
+from src.peft.src.peft import LoraConfig, get_peft_model
+from src.peft.src.peft.tuners.lora import ArrowConfig, create_arrow_model
+from src.peft.src.peft.tuners.lora.arrow import _resolve_adapter_source
 from tests.testing_utils import hub_online_once
 
 

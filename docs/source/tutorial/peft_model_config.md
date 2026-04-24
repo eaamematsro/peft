@@ -58,7 +58,7 @@ For example, take a look at the following [`LoraConfig`](https://huggingface.co/
 You can create your own configuration for training by initializing a [`LoraConfig`].
 
 ```py
-from peft import LoraConfig, TaskType
+from src.peft.src.peft import LoraConfig, TaskType
 
 lora_config = LoraConfig(
     r=16,
@@ -93,7 +93,7 @@ lora_config = LoraConfig(
 You can create your own configuration for training by initializing a [`PromptEncoderConfig`].
 
 ```py
-from peft import PromptEncoderConfig, TaskType
+from src.peft.src.peft import PromptEncoderConfig, TaskType
 
 p_tuning_config = PromptEncoderConfig(
     encoder_reparameterization_type="MLP",
@@ -125,7 +125,7 @@ model = AutoModelForCausalLM.from_pretrained("facebook/opt-350m")
 Use the [`get_peft_model`] function to create a [`PeftModel`] from the base facebook/opt-350m model and the `lora_config` you created earlier.
 
 ```py
-from peft import get_peft_model
+from src.peft.src.peft import get_peft_model
 
 lora_model = get_peft_model(model, lora_config)
 lora_model.print_trainable_parameters()
@@ -148,7 +148,7 @@ lora_model.push_to_hub("your-name/opt-350m-lora")
 To load a [`PeftModel`] for inference, you'll need to provide the [`PeftConfig`] used to create it and the base model it was trained from.
 
 ```py
-from peft import PeftModel, PeftConfig
+from src.peft.src.peft import PeftModel, PeftConfig
 
 config = PeftConfig.from_pretrained("ybelkada/opt-350m-lora")
 model = AutoModelForCausalLM.from_pretrained(config.base_model_name_or_path)
@@ -165,7 +165,7 @@ lora_model = PeftModel.from_pretrained(model, "ybelkada/opt-350m-lora")
 The [`PeftModel.from_pretrained`] method is the most flexible way to load a [`PeftModel`] because it doesn't matter what model framework was used (Transformers, timm, a generic PyTorch model). Other classes, like [`AutoPeftModel`], are just a convenient wrapper around the base [`PeftModel`], and makes it easier to load PEFT models directly from the Hub or locally where the PEFT weights are stored.
 
 ```py
-from peft import AutoPeftModelForCausalLM
+from src.peft.src.peft import AutoPeftModelForCausalLM
 
 lora_model = AutoPeftModelForCausalLM.from_pretrained("ybelkada/opt-350m-lora")
 ```

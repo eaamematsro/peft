@@ -8,8 +8,8 @@
 
 ```python
 import torch
-from peft import LoraConfig, get_peft_model
-from peft.optimizers import create_lorafa_optimizer
+from src.peft.src.peft import LoraConfig, get_peft_model
+from src.peft.src.peft.optimizers import create_lorafa_optimizer
 from transformers import AutoTokenizer, AutoModelForCausalLM, Trainer
 from datasets import load_dataset
 
@@ -48,7 +48,7 @@ trainer.train()
 peft_model.save_pretrained("lorafa-llama-3-8b-inst")
 ```
 
-The only change in your code is to pass the LoRA-FA optimizer to the trainer (if training with trainer). Do not forget `from peft.optimizers import create_lorafa_optimizer`!
+The only change in your code is to pass the LoRA-FA optimizer to the trainer (if training with trainer). Do not forget `from src.peft.src.peft.optimizers import create_lorafa_optimizer`!
 
 ## Example
 

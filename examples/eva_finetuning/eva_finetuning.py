@@ -18,7 +18,7 @@ from torch.utils.data import DataLoader
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 from utils import DataCollator, TokenizerMetaMath
 
-from peft import EvaConfig, LoraConfig, get_peft_model, initialize_lora_eva_weights
+from src.peft.src.peft import EvaConfig, LoraConfig, get_peft_model, initialize_lora_eva_weights
 
 
 DEVICE = torch.accelerator.current_accelerator().type if hasattr(torch, "accelerator") else "cuda"

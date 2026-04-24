@@ -13,8 +13,8 @@ import torch.nn as nn
 from diffusers import UNet2DConditionModel
 from transformers import CLIPTextModel
 
-from peft import LoHaConfig, LoKrConfig, LoraConfig, PeftType, get_peft_model, set_peft_model_state_dict
-from peft.tuners.lokr.layer import factorization
+from src.peft.src.peft import LoHaConfig, LoKrConfig, LoraConfig, PeftType, get_peft_model, set_peft_model_state_dict
+from src.peft.src.peft.tuners.lokr.layer import factorization
 
 
 # Default kohya_ss LoRA replacement modules

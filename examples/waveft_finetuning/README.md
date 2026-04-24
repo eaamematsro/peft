@@ -8,7 +8,7 @@
 ## Quick start
 ```python
 import torch
-from peft import WaveFTConfig, get_peft_model
+from src.peft.src.peft import WaveFTConfig, get_peft_model
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import SFTConfig, SFTTrainer
 from datasets import load_dataset
@@ -45,7 +45,7 @@ please add `--device_map cpu` if you want to run finetune on CPU.
 ## Use the model
 You can load and use the model as any other 🤗 PEFT model
 ```python
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 from transformers import AutoTokenizer, AutoModelForCausalLM
 model = AutoModelForCausalLM.from_pretrained("facebook/opt-350m")
 tokenizer = AutoTokenizer.from_pretrained("facebook/opt-350m")

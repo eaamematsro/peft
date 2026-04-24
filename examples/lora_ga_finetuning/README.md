@@ -13,8 +13,8 @@ import torch
 from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM, Trainer, TrainingArguments
 from torch.utils.data import DataLoader
-from peft import LoraConfig, get_peft_model
-from peft.tuners.lora import LoraGAConfig, preprocess_loraga
+from src.peft.src.peft import LoraConfig, get_peft_model
+from src.peft.src.peft.tuners.lora import LoraGAConfig, preprocess_loraga
 
 # Load model and tokenizer
 model = AutoModelForCausalLM.from_pretrained("gpt2")
@@ -176,7 +176,7 @@ You can load and use the model as any other 🤗 models:
 
 ```python
 from transformers import AutoModelForCausalLM
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 
 model = AutoModelForCausalLM.from_pretrained("gpt2")
 model = PeftModel.from_pretrained(model, "path/to/lora_ga_output")
@@ -213,8 +213,8 @@ LoRA-GA requires full-precision gradients during preprocessing. For quantized mo
 ```python
 import torch
 from transformers import AutoModelForCausalLM, BitsAndBytesConfig
-from peft import LoraConfig, get_peft_model
-from peft.tuners.lora import LoraGAConfig, preprocess_loraga
+from src.peft.src.peft import LoraConfig, get_peft_model
+from src.peft.src.peft.tuners.lora import LoraGAConfig, preprocess_loraga
 
 # Load model in full precision for gradient estimation
 model = AutoModelForCausalLM.from_pretrained(

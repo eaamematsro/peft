@@ -16,7 +16,7 @@ import tempfile
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from peft import (
+from src.peft.src.peft import (
     AutoPeftModel,
     AutoPeftModelForCausalLM,
     AutoPeftModelForFeatureExtraction,
@@ -34,7 +34,7 @@ from peft import (
     PeftModelForTokenClassification,
     get_peft_model,
 )
-from peft.utils import infer_device
+from src.peft.src.peft.utils import infer_device
 
 
 class TestPeftAutoModel:

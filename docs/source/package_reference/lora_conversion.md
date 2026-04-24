@@ -21,7 +21,7 @@ The LoRA rank for the converted adapter can either be set to a fixed rank by pas
 The usage of [`save_as_lora`] is relatively straightforward:
 
 ```python
-from peft import get_peft_model, save_as_lora
+from src.peft.src.peft import get_peft_model, save_as_lora
 
 # first load and train your non-LoRA PEFT model as normal
 base_model = ...
@@ -42,7 +42,7 @@ This will create a LoRA checkpoint at `output_path` that you can load like any o
 The [`convert_to_lora`] function is useful if you don't want to save the converted LoRA adapter but instead want to use the converted weights right away, for example to perform evaluations:
 
 ```python
-from peft import convert_to_lora, get_peft_model, set_peft_model_state_dict
+from src.peft.src.peft import convert_to_lora, get_peft_model, set_peft_model_state_dict
 
 base_model = ...
 non_lora_config = ...

@@ -22,7 +22,7 @@ import unittest
 import torch
 import torch.nn.init as init
 
-from peft import LoraConfig, PeftModel, get_peft_model, get_peft_model_state_dict
+from src.peft.src.peft import LoraConfig, PeftModel, get_peft_model, get_peft_model_state_dict
 
 from .testing_utils import require_torch_gpu
 

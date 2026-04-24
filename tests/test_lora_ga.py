@@ -16,8 +16,8 @@
 import pytest
 import torch
 
-from peft import LoraConfig, PeftModel, get_peft_model
-from peft.tuners.lora import LoraGAConfig, preprocess_loraga
+from src.peft.src.peft import LoraConfig, PeftModel, get_peft_model
+from src.peft.src.peft.tuners.lora import LoraGAConfig, preprocess_loraga
 
 
 class TestLoraGAPreprocessing:

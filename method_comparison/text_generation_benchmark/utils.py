@@ -28,7 +28,7 @@ from typing import Any, Callable, Optional
 import psutil
 import torch
 
-from peft.utils import infer_device
+from src.peft.src.peft.utils import infer_device
 
 
 FILE_NAME_BENCHMARK_PARAMS = "benchmark_params.json"

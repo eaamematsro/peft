@@ -23,9 +23,9 @@ from contextlib import contextmanager
 import torch
 from transformers import AutoModelForCausalLM
 
-from peft import LoraConfig, get_peft_model
-from peft.helpers import DoraCaching
-from peft.utils import infer_device
+from src.peft.src.peft import LoraConfig, get_peft_model
+from src.peft.src.peft.helpers import DoraCaching
+from src.peft.src.peft.utils import infer_device
 
 
 device = infer_device()

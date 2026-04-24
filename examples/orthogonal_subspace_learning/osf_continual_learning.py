@@ -45,7 +45,7 @@ from utils import (
     load_scienceqa,
 )
 
-from peft import OSFConfig, get_peft_model
+from src.peft.src.peft import OSFConfig, get_peft_model
 
 
 def compute_accuracy_scienceqa(model, eval_dataset, tokenizer, data_collator):

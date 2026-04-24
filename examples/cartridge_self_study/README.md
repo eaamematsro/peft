@@ -67,7 +67,7 @@ curl -L -o examples/cartridge_self_study/data/cartridges.tex \
 
 ```python
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from peft import PeftModel
+from src.peft.src.peft import PeftModel
 
 model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen3-4B")
 model = PeftModel.from_pretrained(model, "cartridge_adapter")

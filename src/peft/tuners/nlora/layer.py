@@ -1,5 +1,6 @@
 # layer.py
 import math
+import pdb
 import torch
 import torch.nn as nn
 from peft.tuners.tuners_utils import BaseTunerLayer
@@ -48,6 +49,7 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
         self.nlora_V = nn.ModuleDict()
         self.nlora_U = nn.ModuleDict()
         self.phi = nn.ModuleDict()
+        self.is_linear = {}
 
         self._disable_adapters = False
         self.merged_adapters = []
@@ -59,11 +61,13 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
 
         self.nlora_V[adapter_name] = nn.Linear(self.in_features, r, bias=False)
         self.nlora_U[adapter_name] = nn.Linear(r, self.out_features, bias=False)
+
         self.nlora_dropout[adapter_name] = nn.Dropout(dropout)
         self.phi[adapter_name] = make_phi(activation_fn)
+        self.is_linear[adapter_name] = activation_fn.lower() == "linear"
 
-        # init: V random, U zeros => starts as base model
-        nn.init.kaiming_uniform_(self.nlora_V[adapter_name].weight, a=math.sqrt(5))
+        # Initialize adapter weights so to have unit variance
+        nn.init.normal_(self.nlora_V[adapter_name].weight, std=(r)**(-1/2))
         nn.init.zeros_(self.nlora_U[adapter_name].weight)
 
         self.set_adapter(adapter_name)
@@ -85,8 +89,7 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
     
     @torch.no_grad()
     def adapter_delta(self, x, adapter_name: str):
-        z = self.nlora_V[adapter_name](self.nlora_dropout[adapter_name](x))
-        z = self.phi[adapter_name](z)
+        z = self.inner_adapter_forward(x, adapter_name)
         delta = self.nlora_U[adapter_name](z) * self.scaling[adapter_name]
         return delta
     
@@ -98,20 +101,15 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
 
     @torch.no_grad()
     def accumulate_consolidation_stats(self, x, adapter_name: str, state: dict, off_load_to_cpu: bool = False, accum_dtype=torch.float32,
-                                       lambda_: float = 1e-3, scale_lambda_by_trace: bool = True, consolidate_rls: bool = False,
-                                       zeroshift: bool = False):
+                                       **kwargs):
         """
         Docstring for accumulate_consolidation_stats
         x: [*, d_in]
         the state should hold
-            - "xxt": [d_in, d_in] sum of x_i x_i^T
-            - "xzt": [d_in, r] sum of x_i z_i^T, where z_i is (phi(x @ V) @ U)_i
-            - "zzt": [r, r] sum of z_i z_i^T (optional, only needed for some variants of RLS)
-            - "uzt": [d_in, T] (optional) phi(x @ V) @ U for each sample, used for zero-shift consolidation
-            - "zt": [r, T] (optional) x^T for each sample, used for zero-shift consolidation
-            - "xt": [d_in, T] (optional) x for each sample, used for zero-shift consolidation
-            - "pn": [d_in, d_in] precision matrix used for incremental updates (optional, can be computed on the fly from xxt)
-            - "wn": [d_in, r] weight matrix used for incremental updates (optional, can be computed on the fly from xxt)
+            -   "xxt":   [d, d]  sum of x_i x_i^T
+            -   "xzt":   [d, m]  sum of x_i delta_i^T
+            -   "zzt":   [r, r]  sum of z_i z_i^T
+            -   "zx_dW": [r, d]  sum of z_i x_i^T (for zeroshift)
         :param self: Description
         :param x: Description
         :param adapter_name: Description
@@ -119,10 +117,13 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
         :param state: Description
         :type state: dict
         """
+        
         if x.dim() == 3:
             x2 = x.reshape(-1, x.size(-1))
         else:
             x2 = x
+        
+        x2 = x2.to(dtype=accum_dtype)
 
         delta = self.adapter_delta(x, adapter_name)  # [*, d_out]
 
@@ -137,33 +138,15 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
         d = xA.size(1)
         m = rA.size(1)
         if "xxt" not in state:
-            if not consolidate_rls:
-                state["xxt"] = torch.zeros((d, d), device=dev, dtype=accum_dtype)
-                state["xzt"] = torch.zeros((d, m), device=dev, dtype=accum_dtype)
-            else:
-                state["wn"] = torch.zeros((d, m), device=dev, dtype=accum_dtype)
-                lambda_scaled = lambda_
-
-                if scale_lambda_by_trace:
-                    lambda_scaled = lambda_ #* (torch.trace(xA.t() @ xA) / d).clamp_min(1e-6)
-                else:
-                    lambda_scaled = lambda_
-                
-                state["pn"] = (1 / lambda_scaled) * torch.eye(d, device=dev, dtype=accum_dtype)
-        
-        if consolidate_rls:
-            S = torch.eye(xA.size(0), device=dev, dtype=accum_dtype) + xA @ state["pn"] @ xA.t()
-            kn = state["pn"] @ xA.t() @ torch.linalg.solve(S, torch.eye(xA.size(0), device=dev, dtype=accum_dtype))
-
-            wn = state["wn"] + kn @ (rA - xA @ state["wn"])
-            pn = (state["pn"] - kn @ xA @ state["pn"])
-            pn = 0.5 * (pn + pn.t())  # ensure symmetry
-
-            state["wn"] = wn
-            state["pn"] = pn
-        else:
-            state["xxt"].add_(xA.t() @ xA)
-            state["xzt"].add_(xA.t() @ rA)
+            state["xxt"] = torch.zeros((d, d), device=dev, dtype=accum_dtype)
+            state["xzt"] = torch.zeros((d, m), device=dev, dtype=accum_dtype)
+            state["count"] = 0
+            state["batch_count"] = 0
+            
+        state["xxt"].add_(xA.t() @ xA)
+        state["xzt"].add_(xA.t() @ rA)
+        state["count"] += xA.size(0)
+        state["batch_count"] += 1
 
         z = self.inner_adapter_forward(x, adapter_name)  # [*, r]
         if z.dim() == 3:
@@ -173,59 +156,125 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
         
         zA = z2.to(dev, dtype=accum_dtype)
 
-        state["uzt"] = rA.T
-        state["zt"] = zA.T
-        state["xt"] = xA.T
-        state["zzt"] = zA.T @ zA
-
+        if "zzt" not in state:
+            state["zzt"]    = zA.T @ zA           # [r, r]
+            state["zx_dW"]  = zA.T @ xA           # [r, d] -- accumulate this instead
+        else:
+            state["zzt"].add_(zA.T @ zA)
+            state["zx_dW"].add_(zA.T @ xA)
 
     @torch.no_grad()
-    def solve_dU(self, adapter_name: str, dW, state: dict, lambda_: float, scale_lambda_by_trace=True):
+    def solve_dU(self, adapter_name: str, dW, state: dict, lambda_: float, scale_lambda_by_trace=True,
+                 lambda_schedule=None):
         """
         Solve for optimal U given V and the accumulated stats.
         This is equivalent to solving a ridge regression problem with Tikhonov regularization of strength lambda_.
         Returns U of shape [r, out] which can be merged into base weights as base_w += (V @ U).T
         """
         # b = (U @ phi(x @ V).T - dW x).T = (phi(x @ V) @ U - dW.T x.T), this is the regression residual we want to minimize
-        dev = state["uzt"].device
-        dW = dW.to(dev)
-        zt = state["zt"]    # [T, r]
-        zzt = state["zzt"]  # [r, r] # gram matrix
-        xt = state["xt"]    # [T, d]
+
+        dev = state["zzt"].device
+        accum_dtype = torch.float32
+        samples = state["count"]
+        dW = dW.to(dev, dtype=accum_dtype)
         alpha = self.scaling[adapter_name]
-        target = -1/alpha * zt @ (xt.T @ dW) # [T, d]
+        zzt = state["zzt"] / samples  # [r, r]
+        zzt = zzt.to(dtype=accum_dtype)
+
+        zx_dW = state["zx_dW"] / samples  # [r, d]
+        zx_dW = zx_dW.to(dtype=accum_dtype)
+        target = -1/alpha * zx_dW @ dW  # [r, d] @ [d, m] = [r, m]
+
+        d = zzt.size(0)
 
         if scale_lambda_by_trace:
-            lambda_scaled = lambda_ * (torch.trace(zzt) / zzt.size(0)).clamp_min(1e-6)
-        else:
-            lambda_scaled = lambda_
+            if lambda_schedule is None:
+                # default is to scale by trace of xxt
+                lam = lambda_ * (torch.trace(zzt) / d ).clamp_min(1e-6)
+            elif lambda_schedule == "mean_eigenvalue":
+                lam = lambda_ * (torch.trace(zzt) / d ).clamp_min(1e-6)
+            elif lambda_schedule == "max_eigenvalue":
+                # power iteration to estimate max eigenvalue for better scaling
+                x = torch.randn((d, 1), device=zzt.device, dtype=zzt.dtype)
+                for _ in range(10):
+                    x = zzt @ x
+                    x = x / x.norm()
+                max_eig = (x.t() @ zzt @ x) / (x.t() @ x)
+                lam = lambda_ * max_eig.item()
+            elif lambda_schedule == 'rank_adaptive':
+                # adaptive scaling based on the rank of the data
+                rank = self.r[adapter_name]
+                lam = lambda_ * (torch.trace(zzt) * rank / d ).clamp_min(1e-6)
+            elif lambda_schedule == 'sample_adaptive':
+                # adaptive scaling based on the number of samples seen
+                lam = lambda_ * (torch.trace(zzt) / (d  * math.sqrt(state["count"]))).clamp_min(1e-6)
 
-        A = zzt + lambda_scaled * torch.eye(zzt.size(0), device=dev, dtype=zzt.dtype)  # add regularization for numerical stability
+            elif lambda_schedule == 'rank_and_sample_adaptive':
+                rank = self.r[adapter_name]
+                lam = lambda_ * (torch.trace(zzt) * rank / (d  * math.sqrt(state["count"]))).clamp_min(1e-6)
+            else:
+                lam = lambda_
+        else:
+            lam = lambda_
+
+        A = zzt + lam * torch.eye(zzt.size(0), device=dev, dtype=accum_dtype)  # add regularization for numerical stability
 
         dU = torch.linalg.solve(A, target).T  # [r, out]
         return dU
 
 
     @torch.no_grad()
-    def solve_dW(self, state: dict, lambda_: float, scale_lambda_by_trace=True):
+    def solve_dW(self, state: dict, lambda_: float, scale_lambda_by_trace=True, adapter_name: str = None,
+                 lambda_schedule=None):
         """
         Solve for optimal U given V and the accumulated stats.
         This is equivalent to solving a ridge regression problem with Tikhonov regularization of strength lambda_.
         Returns dW of shape [r, out] which can be merged into base weights as base_w += (V @ dW).T
         """
-        xxt = state["xxt"]  # [d, d]
-        xzt = state["xzt"]  # [d, out]
 
+        samples = state["count"]
+        xxt = state["xxt"] / samples  # [d, d]
+        xzt = state["xzt"] / samples  # [d, out]
         d = xxt.size(0)
+        rank = self.r[adapter_name]
 
         I = torch.eye(d, device=xxt.device, dtype=xxt.dtype)
 
         if scale_lambda_by_trace:
-            # your stabilization heuristic, but now correctly applied
-            lam = lambda_ * (torch.trace(xxt) / d).clamp_min(1e-6)
+            if lambda_schedule is None:
+                # default is to scale by trace of xxt
+                lam = lambda_ * (torch.trace(xxt) / d ).clamp_min(1e-6)
+            elif lambda_schedule == "mean_eigenvalue":
+                lam = lambda_ * (torch.trace(xxt) / d ).clamp_min(1e-6)
+            elif lambda_schedule == "max_eigenvalue":
+                # power iteration to estimate max eigenvalue for better scaling
+                x = torch.randn((d, 1), device=xxt.device, dtype=xxt.dtype)
+                for _ in range(10):
+                    x = xxt @ x
+                    x = x / x.norm()
+                max_eig = (x.t() @ xxt @ x) / (x.t() @ x)
+                lam = lambda_ * max_eig.item()
+            elif lambda_schedule == 'rank_adaptive':
+                # adaptive scaling based on the rank of the data
+                rank = self.r[adapter_name]
+                lam = lambda_ * (torch.trace(xxt) * rank / d ).clamp_min(1e-6)
+            elif lambda_schedule == 'sample_adaptive':
+                # adaptive scaling based on the number of samples seen
+                lam = lambda_ * (torch.trace(xxt) / (d  * math.sqrt(state["count"]))).clamp_min(1e-6)
+
+            elif lambda_schedule == 'rank_and_sample_adaptive':
+                rank = self.r[adapter_name]
+                lam = lambda_ * (torch.trace(xxt) * rank / (d  * math.sqrt(state["count"]))).clamp_min(1e-6)
+            else:
+                lam = lambda_
         else:
             lam = lambda_
 
+        # eigs = torch.linalg.eigvalsh(xxt.cpu())
+        # print(eigs.max() / eigs.min())
+        # print("Using schedule:", lambda_schedule)
+        # print((eigs.max() + lam) / (eigs.min() + lam))
+        # import pdb; pdb.set_trace()
         A = xxt + lam * I  # add scaled identity for numerical stability (and to prevent overfitting when data is limited)
 
         dW = torch.linalg.solve(A, xzt)  # [d, out]
@@ -234,29 +283,109 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
 
     @torch.no_grad()
     def solve_and_merge(self, state: dict, lr_: float, lambda_w: float, scale_by_lambda_: bool,
-                        adapter_name:str, inplace_disable_adapter=False, consolidate_rls=False, 
-                        zeroshift=False):
+                        adapter_name:str, inplace_disable_adapter=False, zeroshift=False, shift_V: bool=False,
+                        lambda_schedule=None):
         """
         Solve for optimal U given V and the accumulated stats, then merge into base layer.
         This is equivalent to solving a ridge regression problem with Tikhonov regularization of strength lambda_.
         """
-        if consolidate_rls:
-            dW = state["wn"]  # [d, out]
-        else:
-            dW = self.solve_dW(state, lambda_=lambda_w, scale_lambda_by_trace=scale_by_lambda_)  # [d, out]
+        dW = self.solve_dW(state, lambda_=lambda_w, scale_lambda_by_trace=scale_by_lambda_, adapter_name=adapter_name,
+                           lambda_schedule=lambda_schedule)  # [d, out]
 
         base_w = self.base_layer.weight.data  # [out, in]
-        dW = dW.to(base_w.device)
 
-        base_w.data.add_(dW.t() * lr_)
+        # print("Consolidation dW relative norm:", dW.norm().item() * lr_ / (base_w.norm().item() + 1e-6))
 
-        if zeroshift:
-            dU = self.solve_dU(adapter_name, lr_ * dW, state, lambda_=lambda_w,
-                               scale_lambda_by_trace=scale_by_lambda_)  # [r, out]
-            dU = dU.to(self.nlora_U[adapter_name].weight.data.device)
-
-            with torch.no_grad():
-                self.nlora_U[adapter_name].weight.data += dU
+        if shift_V and self.is_linear.get(adapter_name, False):
+            self.shift_V_linear(
+                adapter_name=adapter_name,
+                dW=dW,
+                lr=lr_,
+                lambda_=lambda_w,
+            )
+        elif zeroshift:
+            dU = self.solve_dU(
+                adapter_name, lr_ * dW, state,
+                lambda_=lambda_w,
+                scale_lambda_by_trace=scale_by_lambda_,
+                lambda_schedule=lambda_schedule
+            )
+            dU = dU.to(self.nlora_U[adapter_name].weight.data.device,
+                    dtype=self.nlora_U[adapter_name].weight.data.dtype)
+            self.nlora_U[adapter_name].weight.data += dU
 
         if inplace_disable_adapter:
+            print("Disabling adapter after consolidation")
             self._disable_adapters = True
+        
+        dW = dW.to(base_w.device, dtype=base_w.dtype)
+        # In solve_and_merge, after base_w.data.add_(dW.t() * lr_)
+        base_w.data.add_(dW.t() * lr_)
+
+    @torch.no_grad()
+    def shift_V_linear(self, adapter_name: str, dW: torch.Tensor, lr: float, lambda_: float):
+        """
+        For linear adapters: after merging lr*dW into base weights, construct V' in
+        the orthogonal complement of V's row space and solve for U' such that:
+
+            x V'^T U'^T * scaling = x V^T U^T * scaling - x dW^T * lr
+
+        i.e. the new adapter exactly reproduces the residual after the base weight merge.
+        This sets gamma = 0 by construction since col(V') ⊥ col(V).
+
+        Args:
+            adapter_name: name of the adapter
+            dW:           [in, out] — weight update already merged (before lr scaling)
+            lr:           consolidation learning rate
+            lambda_:      ridge regularization for numerical stability
+        """
+        assert self.is_linear.get(adapter_name, False), \
+            "shift_V_linear only valid for linear adapters"
+
+        V       = self.nlora_V[adapter_name].weight.data   # [r, in]
+        U       = self.nlora_U[adapter_name].weight.data   # [out, r]
+        scaling = self.scaling[adapter_name]
+        r       = self.r[adapter_name]
+        d_in    = V.shape[1]
+
+        # ── target: residual the new adapter must reproduce ──────────────
+        # x V'^T U'^T * scaling = x(V^T U^T * scaling - dW * lr)
+        # so V'^T U'^T = (V^T U^T * scaling - dW * lr) / scaling
+        target = (V.T @ U.T * scaling - dW.to(V.dtype) * lr) / scaling   # [in, out]
+
+        # ── construct V' in orthogonal complement of V's row space ───────
+        # QR on V^T gives orthonormal basis for col(V^T) = row space of V
+        # Q: [in, in], first r cols span row space of V
+        #              remaining in-r cols span orthogonal complement
+        V_cpu = V.cpu()  # QR can be unstable on GPU, so move to CPU if needed
+        Q, _ = torch.linalg.qr(
+            V_cpu.T,           # [in, r]
+            mode='complete'  # full [in, in] orthogonal Q
+        )
+        V_orth = Q[:, r:].T    # [in-r, in] — orthogonal complement basis
+
+        # sample r rows from orthogonal complement
+        # use random permutation so V' isn't always the same directions
+        idx   = torch.randperm(V_orth.shape[0])[:r]
+        V_new = V_orth[idx]    # [r, in]
+
+        # normalize V' to match V's Frobenius norm for consistent scaling
+        V_new = V_new.to(V.device, dtype=V.dtype)  # move back to original device if needed
+
+        V_new = V_new * V.norm() / V_new.norm()
+
+
+        # ── solve for U' ──────────────────────────────────────────────────
+        # V'^T U'^T = target
+        # U'^T = (V' V'^T + lambda I)^{-1} V' target
+        # U'   = target^T V'^T (V' V'^T + lambda I)^{-1}
+
+        VVt = V_new @ V_new.T                                              # [r, r]
+        lam = lambda_ * (torch.trace(VVt) / r).clamp_min(1e-6)
+        A   = VVt + lam * torch.eye(r, device=V.device, dtype=V.dtype)    # [r, r]
+        rhs = V_new @ target                                               # [r, out]
+        U_new = torch.linalg.solve(A, rhs).T                               # [out, r]
+
+        # ── update adapter weights ────────────────────────────────────────
+        self.nlora_V[adapter_name].weight.data.copy_(V_new)
+        self.nlora_U[adapter_name].weight.data.copy_(U_new)

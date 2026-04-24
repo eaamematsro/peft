@@ -93,7 +93,7 @@ For using OFT for quantized finetuning with [TRL](https://github.com/huggingface
 ```py
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from trl import SFTTrainer
-from peft import OFTConfig
+from src.peft.src.peft import OFTConfig
 
 if use_quantization:
     bnb_config = BitsAndBytesConfig(
@@ -145,7 +145,7 @@ For the task of image classification, one can initialize the BOFT config for a D
 ```py
 import transformers
 from transformers import AutoModelForSeq2SeqLM, BOFTConfig
-from peft import BOFTConfig, get_peft_model
+from src.peft.src.peft import BOFTConfig, get_peft_model
 
 config = BOFTConfig(
     boft_block_size=4,

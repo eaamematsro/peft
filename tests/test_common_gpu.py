@@ -35,7 +35,7 @@ from transformers import (
 )
 from transformers.pytorch_utils import Conv1D
 
-from peft import (
+from src.peft.src.peft import (
     AdaLoraConfig,
     AdaptionPromptConfig,
     BOFTConfig,
@@ -55,9 +55,9 @@ from peft import (
     get_peft_model,
     prepare_model_for_kbit_training,
 )
-from peft.import_utils import is_bnb_4bit_available, is_bnb_available, is_gptqmodel_available, is_xpu_available
-from peft.tuners.lora.config import LoraRuntimeConfig
-from peft.utils import infer_device
+from src.peft.src.peft.import_utils import is_bnb_4bit_available, is_bnb_available, is_gptqmodel_available, is_xpu_available
+from src.peft.src.peft.tuners.lora.config import LoraRuntimeConfig
+from src.peft.src.peft.utils import infer_device
 
 from .testing_utils import (
     device_count,
@@ -75,18 +75,18 @@ if is_gptqmodel_available():
 if is_bnb_available():
     import bitsandbytes as bnb
 
-    from peft.tuners.ia3 import Linear8bitLt as IA3Linear8bitLt
-    from peft.tuners.lora import Linear8bitLt as LoraLinear8bitLt
-    from peft.tuners.randlora import Linear8bitLt as RandLoraLinear8bitLt
-    from peft.tuners.road import Linear8bitLt as RoadLinear8bitLt
-    from peft.tuners.vera import Linear8bitLt as VeraLinear8bitLt
+    from src.peft.src.peft.tuners.ia3 import Linear8bitLt as IA3Linear8bitLt
+    from src.peft.src.peft.tuners.lora import Linear8bitLt as LoraLinear8bitLt
+    from src.peft.src.peft.tuners.randlora import Linear8bitLt as RandLoraLinear8bitLt
+    from src.peft.src.peft.tuners.road import Linear8bitLt as RoadLinear8bitLt
+    from src.peft.src.peft.tuners.vera import Linear8bitLt as VeraLinear8bitLt
 
     if is_bnb_4bit_available():
-        from peft.tuners.ia3 import Linear4bit as IA3Linear4bit
-        from peft.tuners.lora import Linear4bit as LoraLinear4bit
-        from peft.tuners.randlora import Linear4bit as RandLoraLinear4bit
-        from peft.tuners.road import Linear4bit as RoadLinear4bit
-        from peft.tuners.vera import Linear4bit as VeraLinear4bit
+        from src.peft.src.peft.tuners.ia3 import Linear4bit as IA3Linear4bit
+        from src.peft.src.peft.tuners.lora import Linear4bit as LoraLinear4bit
+        from src.peft.src.peft.tuners.randlora import Linear4bit as RandLoraLinear4bit
+        from src.peft.src.peft.tuners.road import Linear4bit as RoadLinear4bit
+        from src.peft.src.peft.tuners.vera import Linear4bit as VeraLinear4bit
 
 
 @require_non_cpu

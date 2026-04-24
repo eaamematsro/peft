@@ -17,7 +17,7 @@ import pytest
 import torch
 from transformers import AutoModelForSeq2SeqLM, AutoModelForTokenClassification
 
-from peft import (
+from src.peft.src.peft import (
     AdaLoraConfig,
     BOFTConfig,
     BoneConfig,
@@ -47,7 +47,7 @@ from .testing_common import PeftCommonTester
 from .testing_utils import set_init_weights_false
 
 
-# Note: models from peft-internal-testing are just the safetensors versions of hf-internal-testing
+# Note: models from src.peft.src.peft-internal-testing are just the safetensors versions of hf-internal-testing
 PEFT_ENCODER_DECODER_MODELS_TO_TEST = [
     "peft-internal-testing/tiny-random-T5ForConditionalGeneration-calibrated",
     "peft-internal-testing/tiny-random-BartForConditionalGeneration",

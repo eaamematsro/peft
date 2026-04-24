@@ -19,8 +19,8 @@ import math
 import torch
 from torch import nn
 
-from peft import LoraConfig, get_peft_model
-from peft.optimizers import create_lorafa_optimizer
+from src.peft.src.peft import LoraConfig, get_peft_model
+from src.peft.src.peft.optimizers import create_lorafa_optimizer
 
 from .testing_utils import torch_device
 

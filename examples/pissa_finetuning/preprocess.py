@@ -18,7 +18,7 @@ import os
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from peft import LoraConfig, get_peft_model
+from src.peft.src.peft import LoraConfig, get_peft_model
 
 
 parser = argparse.ArgumentParser(description="Merge Adapter to Base Model")

@@ -33,7 +33,7 @@ For example, to inject LoRA adapters into the `linear` submodule of the `DummyMo
 
 ```python
 import torch
-from peft import inject_adapter_in_model, LoraConfig
+from src.peft.src.peft import inject_adapter_in_model, LoraConfig
 
 class DummyModel(torch.nn.Module):
     def __init__(self):
@@ -114,7 +114,7 @@ Be aware that this still only creates the uninitialized PEFT layers, the values 
 To only save the adapter, use the [`get_peft_model_state_dict`] function:
 
 ```python
-from peft import get_peft_model_state_dict
+from src.peft.src.peft import get_peft_model_state_dict
 
 peft_state_dict = get_peft_model_state_dict(model)
 print(peft_state_dict)
@@ -127,7 +127,7 @@ Otherwise, `model.state_dict()` returns the full state dict of the model.
 After loading the saved `state_dict`, it can be applied using the [`set_peft_model_state_dict`] function:
 
 ```python
-from peft import set_peft_model_state_dict
+from src.peft.src.peft import set_peft_model_state_dict
 
 model = DummyModel()
 model = inject_adapter_in_model(lora_config, model)

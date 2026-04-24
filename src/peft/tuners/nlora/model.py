@@ -1,7 +1,10 @@
 # model.py
 import torch
 import torch.nn as nn
+import torch.distributed as dist
+from contextlib import nullcontext
 from peft.tuners.tuners_utils import BaseTuner
+import wandb
 
 from .layer import NonlinearLoraLinear
 
@@ -35,6 +38,42 @@ class NonlinearLoraModel(BaseTuner):
                 raise ValueError(f"Consolidation supports exactly 1 active adapter, got {a}")
             return a[0]
         return a
+    
+    def log_activation_spectrum(self, xxt: torch.Tensor, step: int, accelerator):
+        """Log eigenvalue spectrum of gram matrix for diagnostic purposes."""
+        if not accelerator.is_main_process:
+            return
+        
+        with torch.no_grad():
+            # xxt is [d, d], eigvalsh returns ascending sorted eigenvalues
+            eigvals = torch.linalg.eigvalsh(xxt.float())  # float32 for stability
+            eigvals = eigvals.flip(0)  # descending
+            
+            total = eigvals.sum()
+            cumvar = torch.cumsum(eigvals, dim=0) / total
+            
+            # how many eigenvalues to capture 50%, 90%, 95%, 99%
+            thresholds = [0.5, 0.9, 0.95, 0.99]
+            rank_at = {}
+            for t in thresholds:
+                rank_at[t] = (cumvar < t).sum().item() + 1
+            
+            # ratio of top-r mean to trace/d for your current normalizer comparison
+            d = eigvals.shape[0]
+            r = 8  # your LoRA rank, or pass it in
+            top_r_mean = eigvals[:r].mean().item()
+            trace_over_d = eigvals.sum().item() / d
+            
+            wandb.log({
+                "spectrum/rank_at_50pct": rank_at[0.5],
+                "spectrum/rank_at_90pct": rank_at[0.9],
+                "spectrum/rank_at_95pct": rank_at[0.95],
+                "spectrum/rank_at_99pct": rank_at[0.99],
+                "spectrum/top_r_mean": top_r_mean,
+                "spectrum/trace_over_d": trace_over_d,
+                "spectrum/ratio_top_r_to_trace_d": top_r_mean / (trace_over_d + 1e-8),
+                "step": step,
+            })
 
     @torch.no_grad()
     def consolidate(
@@ -47,11 +86,13 @@ class NonlinearLoraModel(BaseTuner):
         offload_cpu: bool | None = None,
         accum_dtype: torch.dtype | None = None,
         scale_lambda_by_trace: bool | None = None,
-        max_batches: int | None = 1,
+        max_batches: int | None = None,
         inplace_disable_adapter: bool = False,
-        consolidate_rls: bool | None = None,
         update_frequency: int | None = None,
         zeroshift: bool | None = None,
+        lambda_schedule: str | None = None,
+        global_step: int = 0,
+        accelerator = None,
     ):
         """
         Data-dependent consolidation: fit ΔW per wrapped layer using ridge regression on calibration inputs,
@@ -59,6 +100,7 @@ class NonlinearLoraModel(BaseTuner):
 
         Call: peft_model.base_model.consolidate(calib_loader)
         """
+
         # TODO: support multiple adapters at once (currently requires separate calls or manual looping)
         if adapter_name is None:
             adapter_name = self._get_single_active_adapter()
@@ -74,10 +116,7 @@ class NonlinearLoraModel(BaseTuner):
         if scale_lambda_by_trace is None:
             scale_lambda_by_trace = getattr(cfg, "consolidate_scale_lambda_by_trace", True)
         if max_batches is None:
-            max_batches = getattr(cfg, "consolidate_batches", None)  # allow None = all
-        
-        if consolidate_rls is None:
-            consolidate_rls = getattr(cfg, "consolidate_rls", False)
+            max_batches = getattr(cfg, "consolidate_batches", 1)  # allow None = all
 
         if accum_dtype is None:
             dtype_str = getattr(cfg, "consolidate_dtype", "float32")
@@ -88,65 +127,127 @@ class NonlinearLoraModel(BaseTuner):
         
         if zeroshift is None:
             zeroshift = getattr(cfg, "consolidate_zero_shift", False)
+        
+        if lambda_schedule is None:
+            lambda_schedule = getattr(cfg, "consolidate_lambda_schedule", None)
+        
+        shift_V = getattr(cfg, "consolidate_shift_V", False)
 
-        layer_states: dict[NonlinearLoraLinear, dict] = {}
-        hooks = []
+        assert lr is not None, "LR must be specified for consolidation, either via argument or config"
 
-        def make_hook(layer: NonlinearLoraLinear):
-            def hook(module, inputs, output):
-                x = inputs[0] # (batch_size, seq_len, in_features)
-                layer.accumulate_consolidation_stats(
-                    x=x,
-                    adapter_name=adapter_name,
-                    state=layer_states[layer],
-                    off_load_to_cpu=offload_cpu,
-                    accum_dtype=accum_dtype,
-                    lambda_=lambda_,
-                    scale_lambda_by_trace=scale_lambda_by_trace,
-                    consolidate_rls=consolidate_rls,
-                )
-            return hook
+        if lr >= 1e-8:
+            layer_states: dict[NonlinearLoraLinear, dict] = {}
+            hooks = []
 
-        # register hooks + init states
-        layers = []
-        update_count = self.consolidation_updates % update_frequency
-        for m in self.model.modules():
-            if isinstance(m, NonlinearLoraLinear):
-                if (update_count % update_frequency) == 0:
-                    layers.append(m)
-                    layer_states[m] = {}
-                    hooks.append(m.register_forward_hook(make_hook(m)))
-                update_count += 1
-        # accumulate stats
-        self.model.eval()
-        dev = next(self.model.parameters()).device
+            def make_hook(layer: NonlinearLoraLinear):
+                def hook(module, inputs, output):
+                    x = inputs[0] # (batch_size, seq_len, in_features)
+                    layer.accumulate_consolidation_stats(
+                        x=x,
+                        adapter_name=adapter_name,
+                        state=layer_states[layer],
+                        accum_dtype=accum_dtype,
+                        lambda_=lambda_,
+                        scale_lambda_by_trace=scale_lambda_by_trace,
+                    )
+                return hook
 
-        for i, batch in enumerate(dataloader):
-            if max_batches is not None and i >= max_batches:
-                break
-            if isinstance(batch, dict):
-                batch = {k: v.to(dev) for k, v in batch.items()}
-                _ = self.model(**batch)
+            # register hooks + init states
+            layers = []
+            update_count = self.consolidation_updates % update_frequency
+            for m in self.model.modules():
+                if isinstance(m, NonlinearLoraLinear):
+                    if (update_count % update_frequency) == 0:
+                        layers.append(m)
+                        layer_states[m] = {}
+                        hooks.append(m.register_forward_hook(make_hook(m)))
+                    update_count += 1
+            # accumulate stats
+            self.model.eval()
+            dev = next(self.model.parameters()).device
+            dev = next(self.model.parameters()).device
+
+            if dev.type == 'cuda':
+                ctx = torch.autocast(device_type='cuda', dtype=torch.bfloat16)
+            elif dev.type == 'mps':
+                ctx = torch.autocast(device_type='mps', dtype=torch.bfloat16)
             else:
-                # if your dataloader yields (input_ids, attention_mask, labels) tuples etc.
-                _ = self.model(*batch)
+                ctx = nullcontext()
+            for i, batch in enumerate(dataloader):
+                if max_batches is not None and i >= max_batches:
+                    break
+                if isinstance(batch, dict):
+                    batch = {k: v.to(dev) for k, v in batch.items()}
+                    with ctx:
+                       _ = self.model(**batch)
+                else:
+                    with ctx:
+                       _ = self.model(**batch)
 
-        for h in hooks:
-            h.remove()
+            for h in hooks:
+                h.remove()
+            
+            if dist.is_available() and dist.is_initialized():
+                for layer in layers:
+                    state = layer_states[layer]
+                    if not layer.is_linear.get(adapter_name, False):
+                        dist.all_reduce(state["xxt"], op=dist.ReduceOp.SUM)
+                        dist.all_reduce(state["xzt"], op=dist.ReduceOp.SUM)
+                        dist.all_reduce(state["zzt"], op=dist.ReduceOp.SUM)
+                        dist.all_reduce(state["zx_dW"], op=dist.ReduceOp.SUM)
+                        dist.all_reduce(state["count"], op=dist.ReduceOp.SUM)
+                        dist.all_reduce(state["batch_count"], op=dist.ReduceOp.SUM)
+                        print(f"Layer {layer} | count: {state['count']} | batch_count: {state['batch_count']}")                        
 
-        # solve + merge per layer
-        for layer in layers:
-            layer.solve_and_merge(
-                state=layer_states[layer],
-                lr_=lr,
-                lambda_w=lambda_,
-                scale_by_lambda_=scale_lambda_by_trace,
-                adapter_name=adapter_name,
-                inplace_disable_adapter=inplace_disable_adapter,
-                consolidate_rls=consolidate_rls,
-                zeroshift=zeroshift,
-            )
+            # if accelerator is not None:
+            #     first_layer = next(iter(layer_states.keys()))
+            #     if not first_layer.is_linear.get(adapter_name, False):
+            #         xxt = layer_states[first_layer]["xxt"]
+            #         self.log_activation_spectrum(xxt, step=global_step, accelerator=accelerator)
 
-        self.consolidation_updates += 1
+            test_batch = next(iter(dataloader))
+            if isinstance(test_batch, dict):
+                test_batch = {k: v.to(dev) if isinstance(v, torch.Tensor) else v 
+                            for k, v in test_batch.items()}
 
-        return layer_states
+            with torch.no_grad():
+                with ctx:
+                    out_before = self.model(**test_batch)
+                    loss_before = out_before.loss.item()
+
+            for layer in layers:
+                layer.solve_and_merge(
+                    state=layer_states[layer],
+                    lr_=lr,
+                    lambda_w=lambda_,
+                    scale_by_lambda_=scale_lambda_by_trace,
+                    adapter_name=adapter_name,
+                    inplace_disable_adapter=inplace_disable_adapter,
+                    zeroshift=zeroshift,
+                    lambda_schedule=lambda_schedule,
+                    shift_V=shift_V,
+                )
+
+                # # add noise to V to encourage subspace exploration
+                # if V_noise_scale > 0:
+                #     for adapter_name_key, V in layer.nlora_V.items():
+                #         if adapter_name_key == adapter_name:
+                #             V_norm = V.weight.data.norm()
+                #             noise = torch.randn_like(V.weight.data)
+
+                #             V_new = (1 - V_noise_scale) * V.weight.data + V_noise_scale * noise
+                #             V.weight.data.copy_(V_new * V_norm / (V_new.norm() + 1e-8))
+
+            with torch.no_grad():
+                with ctx:
+                    out_after = self.model(**test_batch)
+                    loss_after = out_after.loss.item()
+
+            print(f"Loss before merge: {loss_before:.6f}")
+            print(f"Loss after merge:  {loss_after:.6f}")
+            print(f"Difference:        {loss_after - loss_before:.6f}")
+
+            self.consolidation_updates += 1
+
+            return layer_states
+

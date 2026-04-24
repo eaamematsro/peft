@@ -31,7 +31,7 @@ Each PEFT method is defined by a [`PeftConfig`] class that stores all the import
 - `lora_dropout`: the dropout probability of the LoRA layers
 
 ```python
-from peft import LoraConfig, TaskType
+from src.peft.src.peft import LoraConfig, TaskType
 
 peft_config = LoraConfig(task_type=TaskType.SEQ_2_SEQ_LM, inference_mode=False, r=8, lora_alpha=32, lora_dropout=0.1)
 ```
@@ -52,7 +52,7 @@ model = AutoModelForSeq2SeqLM.from_pretrained("bigscience/mt0-large")
 Wrap the base model and `peft_config` with the [`get_peft_model`] function to create a [`PeftModel`]. To get a sense of the number of trainable parameters in your model, use the [`print_trainable_parameters`] method.
 
 ```python
-from peft import get_peft_model
+from src.peft.src.peft import get_peft_model
 
 model = get_peft_model(model, peft_config)
 model.print_trainable_parameters()
@@ -127,7 +127,7 @@ Both methods only save the extra PEFT weights that were trained, meaning it is s
 Easily load any PEFT-trained model for inference with the [`AutoPeftModel`] class and the [`~transformers.PreTrainedModel.from_pretrained`] method:
 
 ```py
-from peft import AutoPeftModelForCausalLM
+from src.peft.src.peft import AutoPeftModelForCausalLM
 from transformers import AutoTokenizer
 import torch
 
@@ -147,7 +147,7 @@ print(tokenizer.batch_decode(outputs.detach().cpu().numpy(), skip_special_tokens
 For other tasks that aren't explicitly supported with an `AutoPeftModelFor` class - such as automatic speech recognition - you can still use the base [`AutoPeftModel`] class to load a model for the task.
 
 ```py
-from peft import AutoPeftModel
+from src.peft.src.peft import AutoPeftModel
 
 model = AutoPeftModel.from_pretrained("smangrul/openai-whisper-large-v2-LORA-colab")
 ```

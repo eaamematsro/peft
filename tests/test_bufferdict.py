@@ -1,6 +1,6 @@
 import torch
 
-from peft.tuners._buffer_dict import BufferDict
+from src.peft.src.peft.tuners._buffer_dict import BufferDict
 
 
 class TestBufferDict:

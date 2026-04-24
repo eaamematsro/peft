@@ -29,7 +29,7 @@ from transformers import (
     TrainingArguments,
 )
 
-from peft import (
+from src.peft.src.peft import (
     AdaLoraConfig,
     LoraConfig,
     OFTConfig,
@@ -37,8 +37,8 @@ from peft import (
     get_peft_model,
     prepare_model_for_kbit_training,
 )
-from peft.tuners.lora import GPTQLoraLinear
-from peft.utils import SAFETENSORS_WEIGHTS_NAME, infer_device
+from src.peft.src.peft.tuners.lora import GPTQLoraLinear
+from src.peft.src.peft.utils import SAFETENSORS_WEIGHTS_NAME, infer_device
 
 from .testing_utils import (
     DEVICE_MAP_MAP,

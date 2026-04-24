@@ -26,8 +26,8 @@ from transformers import (
     LlavaForConditionalGeneration,
 )
 
-from peft import LoraConfig, PeftModel, VeraConfig, get_peft_model
-from peft.utils.other import ModulesToSaveWrapper, _get_module_names_tied_with_embedding, _get_no_split_modules
+from src.peft.src.peft import LoraConfig, PeftModel, VeraConfig, get_peft_model
+from src.peft.src.peft.utils.other import ModulesToSaveWrapper, _get_module_names_tied_with_embedding, _get_no_split_modules
 
 from .testing_utils import hub_online_once
 

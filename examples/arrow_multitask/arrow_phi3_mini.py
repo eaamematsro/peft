@@ -89,7 +89,7 @@ from sklearn.metrics import accuracy_score
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
-from peft import ArrowConfig, create_arrow_model
+from src.peft.src.peft import ArrowConfig, create_arrow_model
 
 
 MODEL_NAME = "microsoft/Phi-3-mini-4k-instruct"

@@ -15,7 +15,7 @@ import pytest
 import torch
 from transformers import AutoModel
 
-from peft import (
+from src.peft.src.peft import (
     AdaLoraConfig,
     BOFTConfig,
     BoneConfig,
@@ -43,7 +43,7 @@ from .testing_common import PeftCommonTester
 from .testing_utils import set_init_weights_false
 
 
-# Note: models from peft-internal-testing are just the safetensors versions of hf-internal-testing
+# Note: models from src.peft.src.peft-internal-testing are just the safetensors versions of hf-internal-testing
 PEFT_FEATURE_EXTRACTION_MODELS_TO_TEST = [
     "peft-internal-testing/tiny-random-BertModel",
     "peft-internal-testing/tiny-random-RobertaModel",

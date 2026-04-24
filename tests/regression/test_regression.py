@@ -66,7 +66,7 @@ from transformers import AutoModelForCausalLM, BitsAndBytesConfig
 from transformers.pytorch_utils import Conv1D
 
 import peft
-from peft import (
+from src.peft.src.peft import (
     AdaLoraConfig,
     BOFTConfig,
     IA3Config,
@@ -79,7 +79,7 @@ from peft import (
     VeraConfig,
     get_peft_model,
 )
-from peft.utils import infer_device
+from src.peft.src.peft.utils import infer_device
 
 from ..testing_utils import require_bitsandbytes, require_deterministic_for_xpu, require_non_cpu
 

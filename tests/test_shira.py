@@ -21,7 +21,7 @@ import torch
 from accelerate.utils.imports import is_bf16_available
 from torch import nn
 
-from peft import PeftModel, ShiraConfig, get_peft_model
+from src.peft.src.peft import PeftModel, ShiraConfig, get_peft_model
 
 
 def custom_random_mask_function_with_custom_kwargs(custom_arg):

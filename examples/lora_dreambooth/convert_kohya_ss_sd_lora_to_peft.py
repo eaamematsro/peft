@@ -9,7 +9,7 @@ import torch
 from diffusers import UNet2DConditionModel
 from transformers import CLIPTextModel
 
-from peft import LoraConfig, get_peft_model, get_peft_model_state_dict, set_peft_model_state_dict
+from src.peft.src.peft import LoraConfig, get_peft_model, get_peft_model_state_dict, set_peft_model_state_dict
 
 
 # Default kohya_ss LoRA replacement modules

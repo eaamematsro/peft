@@ -6,7 +6,7 @@ from diffusers import UNet2DConditionModel
 from safetensors.torch import save_file
 from transformers import CLIPTextModel
 
-from peft import PeftModel, get_peft_model_state_dict
+from src.peft.src.peft import PeftModel, get_peft_model_state_dict
 
 
 # Default kohya_ss LoRA replacement modules

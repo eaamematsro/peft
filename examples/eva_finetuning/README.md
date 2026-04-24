@@ -14,7 +14,7 @@ from datasets import load_dataset
 from torch.utils.data import DataLoader
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from peft import EvaConfig, LoraConfig, get_peft_model, initialize_lora_eva_weights
+from src.peft.src.peft import EvaConfig, LoraConfig, get_peft_model, initialize_lora_eva_weights
 
 
 # config
@@ -75,7 +75,7 @@ initialize_lora_eva_weights(peft_model, dataloader)
 EVA is fully compatible with bitsandbytes. Simply initialize the pretrained model with a BitsAndBytesConfig and then use the peft model with EVA.
 ```python
 from transformers import BitsAndBytesConfig
-from peft import prepare_model_for_kbit_training
+from src.peft.src.peft import prepare_model_for_kbit_training
 
 model = AutoModelForCausalLM.from_pretrained(
     "meta-llama/Llama-3.1-8B",
@@ -95,7 +95,7 @@ In some cases you might just want to get the state_dict after EVA initialization
 
 You can do this by calling `get_eva_state_dict` directly (you only need to pass `peft_config` if `model` is not a PeftModel):
 ```python
-from peft import get_eva_state_dict
+from src.peft.src.peft import get_eva_state_dict
 
 eva_state_dict = get_eva_state_dict(model, dataloader, peft_config)
 ```

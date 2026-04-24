@@ -38,8 +38,8 @@ from torchvision import transforms
 from tqdm.auto import tqdm
 from transformers import AutoTokenizer, PretrainedConfig
 
-from peft import get_peft_model
-from peft.tuners.oft.config import OFTConfig
+from src.peft.src.peft import get_peft_model
+from src.peft.src.peft.tuners.oft.config import OFTConfig
 
 
 # Will error if the minimal version of diffusers is not installed. Remove at your own risks.

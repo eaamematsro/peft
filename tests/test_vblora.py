@@ -20,7 +20,7 @@ from accelerate.utils.imports import is_bf16_available
 from safetensors import safe_open
 from torch import nn
 
-from peft import PeftModel, VBLoRAConfig, get_peft_model
+from src.peft.src.peft import PeftModel, VBLoRAConfig, get_peft_model
 
 
 class MLP(nn.Module):

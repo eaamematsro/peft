@@ -20,7 +20,7 @@ import warnings
 
 import pytest
 
-from peft import (
+from src.peft.src.peft import (
     AdaLoraConfig,
     AdaptionPromptConfig,
     BOFTConfig,
@@ -133,7 +133,7 @@ class TestPeftConfig:
         Test if the config is correctly loaded using:
         - from_peft_type
         """
-        from peft.mapping import PEFT_TYPE_TO_CONFIG_MAPPING
+        from src.peft.src.peft.mapping import PEFT_TYPE_TO_CONFIG_MAPPING
 
         for peft_type in PeftType:
             expected_cls = PEFT_TYPE_TO_CONFIG_MAPPING[peft_type]
@@ -511,7 +511,7 @@ class TestPeftConfig:
     @pytest.mark.parametrize("config_class, mandatory_kwargs", ALL_CONFIG_CLASSES)
     def test_peft_version_is_stored(self, version, config_class, mandatory_kwargs, monkeypatch, tmp_path):
         # Check that the PEFT version is automatically stored in/restored from the config file.
-        from peft import config
+        from src.peft.src.peft import config
 
         monkeypatch.setattr(config, "__version__", version)
 
@@ -539,7 +539,7 @@ class TestPeftConfig:
     def test_peft_version_is_dev_version(self, config_class, mandatory_kwargs, monkeypatch, tmp_path):
         # When a dev version of PEFT is installed, the actual state of PEFT is ambiguous. Therefore, try to determine
         # the commit hash too and store it as part of the version string.
-        from peft import config
+        from src.peft.src.peft import config
 
         version = "0.15.0.dev7"
         monkeypatch.setattr(config, "__version__", version)
@@ -563,7 +563,7 @@ class TestPeftConfig:
     ):
         # There can be cases where PEFT is using a dev version but the commit hash cannot be determined. In this case,
         # just store the dev version string.
-        from peft import config
+        from src.peft.src.peft import config
 
         version = "0.15.0.dev7"
         monkeypatch.setattr(config, "__version__", version)
@@ -585,7 +585,7 @@ class TestPeftConfig:
         # We try to get the PEFT commit hash if a dev version is installed. But in case there is any kind of error
         # there, we don't want user code to break. Instead, the code should run and a version without commit hash should
         # be recorded. In addition, there should be a warning.
-        from peft import config
+        from src.peft.src.peft import config
 
         version = "0.15.0.dev7"
         monkeypatch.setattr(config, "__version__", version)

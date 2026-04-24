@@ -23,7 +23,7 @@ from torch.utils.data.distributed import DistributedSampler
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 from utils import DataCollator, TokenizerMetaMath
 
-from peft import EvaConfig, LoraConfig, get_eva_state_dict, get_peft_model, initialize_lora_eva_weights
+from src.peft.src.peft import EvaConfig, LoraConfig, get_eva_state_dict, get_peft_model, initialize_lora_eva_weights
 
 
 # run this script e.g. with: torchrun --nproc_per_node=4 eva_finetuning_multi_gpu.py

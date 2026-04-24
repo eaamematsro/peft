@@ -152,7 +152,7 @@ For any PEFT method, you'll need to create a configuration which contains all th
 [P-tuning](../conceptual_guides/prompting#p-tuning) adds a trainable embedding tensor where the prompt tokens can be added anywhere in the input sequence. Create a [`PromptEncoderConfig`] with the task type, the number of virtual tokens to add and learn, and the hidden size of the encoder for learning the prompt parameters.
 
 ```py
-from peft import PromptEncoderConfig, get_peft_model
+from src.peft.src.peft import PromptEncoderConfig, get_peft_model
 
 peft_config = PromptEncoderConfig(task_type="CAUSAL_LM", num_virtual_tokens=20, encoder_hidden_size=128)
 model = get_peft_model(model, peft_config)
@@ -166,7 +166,7 @@ model.print_trainable_parameters()
 [Prefix tuning](../conceptual_guides/prompting#prefix-tuning) adds task-specific parameters in all of the model layers, which are optimized by a separate feed-forward network. Create a [`PrefixTuningConfig`] with the task type and number of virtual tokens to add and learn.
 
 ```py
-from peft import PrefixTuningConfig, get_peft_model
+from src.peft.src.peft import PrefixTuningConfig, get_peft_model
 
 peft_config = PrefixTuningConfig(task_type="CAUSAL_LM", num_virtual_tokens=20)
 model = get_peft_model(model, peft_config)
@@ -182,7 +182,7 @@ model.print_trainable_parameters()
 Create a [`PromptTuningConfig`] with the task type, the initial prompt tuning text to train the model with, the number of virtual tokens to add and learn, and a tokenizer.
 
 ```py
-from peft import PromptTuningConfig, PromptTuningInit, get_peft_model
+from src.peft.src.peft import PromptTuningConfig, PromptTuningInit, get_peft_model
 
 prompt_tuning_init_text = "Classify if the tweet is a complaint or no complaint.\n"
 peft_config = PromptTuningConfig(
@@ -280,7 +280,7 @@ If you check the model file size in the repository, you’ll see that it is a lo
 Let's load the model for inference and test it out on a tweet!
 
 ```py
-from peft import AutoPeftModelForCausalLM
+from src.peft.src.peft import AutoPeftModelForCausalLM
 
 model = AutoPeftModelForCausalLM.from_pretrained("peft_model_id").to("cuda")
 tokenizer = AutoTokenizer.from_pretrained("bigscience/bloomz-560m")
