@@ -206,6 +206,9 @@ class NonlinearLoraModel(BaseTuner):
             #         self.log_activation_spectrum(xxt, step=global_step, accelerator=accelerator)
 
             test_batch = next(iter(dataloader))
+            if isinstance(test_batch, dict):
+                test_batch = {k: v.to(dev) if isinstance(v, torch.Tensor) else v 
+                            for k, v in test_batch.items()}
 
             with torch.no_grad():
                 with ctx:

@@ -304,7 +304,6 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
                 lambda_=lambda_w,
             )
         elif zeroshift:
-            print("Performing zero-shift consolidation")
             dU = self.solve_dU(
                 adapter_name, lr_ * dW, state,
                 lambda_=lambda_w,
@@ -320,6 +319,7 @@ class NonlinearLoraLinear(nn.Module, BaseTunerLayer):
             self._disable_adapters = True
         
         dW = dW.to(base_w.device, dtype=base_w.dtype)
+        # In solve_and_merge, after base_w.data.add_(dW.t() * lr_)
         base_w.data.add_(dW.t() * lr_)
 
     @torch.no_grad()
