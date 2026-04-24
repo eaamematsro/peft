@@ -67,11 +67,10 @@ def _reset_U(module, adapter_name: str) -> None:
 
 def _reset_V(module, adapter_name: str) -> None:
     """Reset V/lora_A to random."""
-    dim = _get_V(module, adapter_name).shape[1]
     if _is_nlora_layer(module):
-        nn.init.normal_(module.nlora_V[adapter_name].weight, std=1/math.sqrt(dim))
+        nn.init.kaiming_uniform_(module.nlora_V[adapter_name].weight, a=math.sqrt(5))
     else:
-        nn.init.normal_(module.lora_A[adapter_name].weight, std=1/math.sqrt(dim))
+        nn.init.kaiming_uniform_(module.lora_A[adapter_name].weight, a=math.sqrt(5))
 
 def _accumulate_stats(
     module,
