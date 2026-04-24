@@ -178,6 +178,7 @@ def consolidate(
     update_frequency: int = 1,
     accelerator=None,
     global_step: int = 0,
+    **kwargs,
 ) -> dict:
     """
     Standalone consolidation function. Works with any model containing
